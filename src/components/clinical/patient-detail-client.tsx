@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePatients } from "@/hooks/use-practice-store";
 import { getMedEvents } from "@/lib/practice-store";
+import { CopyToNoteButton } from "@/components/clinical/copy-to-note-button";
 import { formatTime, initials } from "@/lib/utils";
 import type { ScaleResponse } from "@/modules/clinical/types";
 import { ArrowLeft, Copy, ExternalLink } from "lucide-react";
@@ -55,8 +56,9 @@ export function PatientDetailClient({ id }: { id: string }) {
               Patient check-in link
             </Button>
           </Link>
+          <CopyToNoteButton patient={patient} />
           <Button
-            variant="soft"
+            variant="secondary"
             size="sm"
             onClick={() => {
               navigator.clipboard?.writeText(

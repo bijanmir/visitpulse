@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { usePracticeStore } from "@/hooks/use-practice-store";
-import { features } from "@/lib/features";
 import {
   DEMO_MFA_CODE,
   logout,
   setMfaEnabled,
   updateProfile,
 } from "@/lib/practice-store";
-import { KeyRound, Shield, User } from "lucide-react";
+import { KeyRound, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -122,22 +121,6 @@ export function SettingsClient() {
         )}
       </Card>
 
-      <Card>
-        <div className="flex items-center gap-2 text-pulse-700">
-          <Shield className="h-5 w-5" />
-          <h2 className="font-display text-lg font-semibold text-slate-800">
-            Compliance module
-          </h2>
-        </div>
-        <dl className="mt-6 space-y-4">
-          <SettingRow label="Compliance mode" value={features.complianceMode} />
-          <SettingRow
-            label="Audit persistence"
-            value={features.auditPersist ? "enabled" : "stub"}
-          />
-        </dl>
-      </Card>
-
       <Button
         variant="secondary"
         onClick={() => {
@@ -147,17 +130,6 @@ export function SettingsClient() {
       >
         Sign out
       </Button>
-    </div>
-  );
-}
-
-function SettingRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between border-b border-slate-100 pb-4 last:border-0 last:pb-0">
-      <dt className="text-sm text-slate-600">{label}</dt>
-      <dd>
-        <Badge tone="slate">{value}</Badge>
-      </dd>
     </div>
   );
 }

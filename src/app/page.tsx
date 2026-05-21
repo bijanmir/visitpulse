@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   ArrowRight,
-  Brain,
-  Calendar,
   CheckCircle2,
+  ClipboardCopy,
+  GitBranch,
   LineChart,
+  MessageSquare,
   Pill,
-  Shield,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -21,20 +20,19 @@ export default function HomePage() {
 
       <main>
         <section className="mx-auto max-w-6xl px-6 pb-24 pt-20 text-center md:pt-28">
-          <div className="mx-auto inline-flex items-center gap-2 rounded-full bg-pulse-100/80 px-4 py-1.5 text-sm font-medium text-pulse-800 ring-1 ring-pulse-200/60">
-            <Sparkles className="h-4 w-4" />
-            Built for outpatient psychiatry
-          </div>
+          <p className="mx-auto inline-flex items-center gap-2 rounded-full bg-pulse-100/80 px-4 py-1.5 text-sm font-medium text-pulse-800 ring-1 ring-pulse-200/60">
+            For cash-pay & private-practice psychiatrists
+          </p>
           <h1 className="font-display mx-auto mt-8 max-w-4xl text-5xl font-semibold leading-[1.1] tracking-tight text-slate-800 md:text-6xl">
-            Walk into every visit{" "}
+            Complex patients.{" "}
             <span className="bg-gradient-to-r from-pulse-600 to-pulse-400 bg-clip-text text-transparent">
-              already prepared
+              One timeline.
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
-            VisitPulse collects patient check-ins, symptom trends, and
-            medication history — then delivers a calm, one-page brief before
-            each appointment.
+            VisitPulse keeps a living medication and symptom story — then gives
+            you a one-page brief to paste into whatever note system you already
+            use. Patient check-ins are just how the timeline stays current.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href="/login">
@@ -45,104 +43,119 @@ export default function HomePage() {
             </Link>
             <Link href="/check-in/demo-jordan">
               <Button variant="secondary" size="lg" className="min-w-[200px]">
-                Preview patient check-in
+                See patient check-in
               </Button>
             </Link>
           </div>
           <p className="mt-4 text-xs text-slate-500">
-            Demo uses synthetic patients only · HIPAA module ready when you are
+            Interactive demo · synthetic patients only
           </p>
         </section>
 
-        <section
-          id="features"
-          className="mx-auto max-w-6xl px-6 py-20"
-        >
+        <section id="features" className="mx-auto max-w-6xl px-6 py-20">
           <div className="grid gap-6 md:grid-cols-3">
             <FeatureCard
-              icon={Calendar}
-              title="Visit Prep"
-              description="PHQ-9, GAD-7, sleep, adherence, and safety screens — summarized in under 30 seconds."
+              icon={GitBranch}
+              title="Med timeline"
+              description="Every trial, dose change, response, and stop reason — the story your EHR med list doesn't tell."
               tone="pulse"
             />
             <FeatureCard
-              icon={Pill}
-              title="Med Timeline"
-              description="Trials, dose changes, response, and discontinuation reasons on one visual timeline."
+              icon={LineChart}
+              title="Symptom trends"
+              description="PHQ-9 and GAD-7 direction before you walk in — improving, stable, or worsening at a glance."
               tone="lavender"
             />
             <FeatureCard
-              icon={Shield}
-              title="Compliance-ready"
-              description="Modular HIPAA layer: flip compliance mode when BAAs and audit logging are live."
+              icon={ClipboardCopy}
+              title="Copy to note"
+              description="One click copies a formatted pre-visit paragraph. Paste into SimplePractice, Osmind, or a Word template — no integration required."
               tone="peach"
             />
           </div>
         </section>
 
-        <section
-          id="workflow"
-          className="mx-auto max-w-6xl px-6 py-20"
-        >
+        <section id="workflow" className="mx-auto max-w-6xl px-6 py-20">
           <Card className="overflow-hidden p-0">
             <div className="grid md:grid-cols-2">
               <div className="p-10 md:p-14">
                 <h2 className="font-display text-3xl font-semibold text-slate-800">
-                  From check-in to session brief
+                  Sensor → brief → your note
                 </h2>
                 <ol className="mt-8 space-y-6">
                   {[
-                    "Patient completes a 90-second check-in before the visit",
-                    "Symptom scales and med context update automatically",
-                    "You review one brief — trends, risks, talking points",
+                    {
+                      title: "Timeline stays current",
+                      body: "Optional pre-visit check-in (sleep, adherence, patient message) feeds the record.",
+                    },
+                    {
+                      title: "You get the output",
+                      body: "Med timeline + trends + talking points on one calm screen.",
+                    },
+                    {
+                      title: "Paste and go",
+                      body: "Copy a structured paragraph into your existing charting workflow.",
+                    },
                   ].map((step, i) => (
-                    <li key={step} className="flex gap-4">
+                    <li key={step.title} className="flex gap-4">
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pulse-100 text-sm font-semibold text-pulse-700">
                         {i + 1}
                       </span>
-                      <span className="text-slate-600">{step}</span>
+                      <div>
+                        <p className="font-medium text-slate-800">
+                          {step.title}
+                        </p>
+                        <p className="text-sm text-slate-600">{step.body}</p>
+                      </div>
                     </li>
                   ))}
                 </ol>
               </div>
               <div className="bg-gradient-to-br from-pulse-50 via-white to-lavender-100/40 p-10 md:p-14">
-                <div className="rounded-2xl bg-white/90 p-6 shadow-lg shadow-pulse-200/30 ring-1 ring-pulse-100">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-pulse-600">
-                    Today · 2:00 PM
+                <div className="rounded-2xl bg-white/90 p-6 font-mono text-xs leading-relaxed text-slate-600 shadow-lg shadow-pulse-200/30 ring-1 ring-pulse-100">
+                  <p className="font-sans text-xs font-semibold uppercase tracking-wider text-pulse-600">
+                    Clipboard · ready to paste
                   </p>
-                  <p className="mt-2 font-display text-xl font-semibold text-slate-800">
-                    Jordan M. · MDD
-                  </p>
-                  <p className="mt-3 text-sm text-slate-600">
-                    Depression improving · Anxiety stable · Sleep 6.5h ·
-                    Partial adherence
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-pulse-100 px-3 py-1 text-xs font-medium text-pulse-800">
-                      PHQ-9 ↓ 4
-                    </span>
-                    <span className="rounded-full bg-lavender-100 px-3 py-1 text-xs font-medium text-lavender-800">
-                      Venlafaxine ↑ 2w
-                    </span>
-                  </div>
+                  <pre className="mt-3 whitespace-pre-wrap">
+                    {`VISITPULSE — PRE-VISIT BRIEF
+Patient: Jordan M. | MDD
+PHQ-9: Improving (-4 pts)
+Active: Venlafaxine XR 150mg
+Patient message: "Foggy mornings…"
+• Explore adherence barriers`}
+                  </pre>
                 </div>
               </div>
             </div>
           </Card>
         </section>
 
+        <section className="mx-auto max-w-3xl px-6 pb-12 text-center">
+          <MessageSquare className="mx-auto h-8 w-8 text-pulse-500" />
+          <p className="mt-4 text-sm leading-relaxed text-slate-600">
+            Check-ins are the{" "}
+            <span className="font-medium text-slate-800">sensor</span>, not the
+            product. Solo prescribers already chart elsewhere — we make the
+            pre-visit thinking fast, then get out of your way.
+          </p>
+        </section>
+
         <section id="pricing" className="mx-auto max-w-6xl px-6 py-20">
           <h2 className="font-display text-center text-3xl font-semibold text-slate-800">
-            Simple pricing for private practice
+            Priced for a 45-minute follow-up
           </h2>
+          <p className="mx-auto mt-2 max-w-lg text-center text-slate-600">
+            One saved miss on a complex patient pays for the month.
+          </p>
           <div className="mt-12 grid gap-6 md:grid-cols-2">
             <PricingCard
               name="Essential"
               price="$59"
               features={[
-                "Visit Prep & patient check-ins",
-                "PHQ-9 / GAD-7 trends",
-                "Up to 40 active patients",
+                "Med timeline & symptom trends",
+                "Pre-visit brief",
+                "Patient check-in links",
+                "Up to 40 patients",
               ]}
             />
             <PricingCard
@@ -151,7 +164,7 @@ export default function HomePage() {
               highlighted
               features={[
                 "Everything in Essential",
-                "Med Timeline & note export",
+                "Copy-to-note formatting",
                 "Unlimited patients",
                 "Priority support",
               ]}
@@ -164,8 +177,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 md:flex-row">
           <Logo showText />
           <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} VisitPulse · Synthetic demo data
-            only
+            © {new Date().getFullYear()} VisitPulse · Clinical workflow demo
           </p>
         </div>
       </footer>

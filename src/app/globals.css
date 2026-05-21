@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f7fb;
+  --foreground: #334155;
+  --card: #ffffff;
+  --pulse-50: #f0f4fc;
+  --pulse-100: #dce6f8;
+  --pulse-200: #b8cdef;
+  --pulse-300: #8faddf;
+  --pulse-400: #6b92cf;
+  --pulse-500: #4f79b8;
+  --pulse-600: #3f6299;
+  --pulse-700: #35517f;
+  --pulse-800: #2f4468;
+  --lavender-100: #eeeaf8;
+  --lavender-200: #ddd5f0;
+  --lavender-800: #5a5280;
+  --rose-100: #fae8ec;
+  --rose-200: #f5d0d8;
+  --rose-800: #9b4d5c;
+  --peach-100: #fdf4ea;
+  --peach-200: #f9e4cc;
+  --peach-800: #9a6b38;
+  --mist-50: #f8f9fc;
+  --mist-100: #eef1f7;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-pulse-50: var(--pulse-50);
+  --color-pulse-100: var(--pulse-100);
+  --color-pulse-200: var(--pulse-200);
+  --color-pulse-300: var(--pulse-300);
+  --color-pulse-400: var(--pulse-400);
+  --color-pulse-500: var(--pulse-500);
+  --color-pulse-600: var(--pulse-600);
+  --color-pulse-700: var(--pulse-700);
+  --color-pulse-800: var(--pulse-800);
+  --color-lavender-100: var(--lavender-100);
+  --color-lavender-200: var(--lavender-200);
+  --color-lavender-800: var(--lavender-800);
+  --color-rose-100: var(--rose-100);
+  --color-rose-200: var(--rose-200);
+  --color-rose-800: var(--rose-800);
+  --color-peach-100: var(--peach-100);
+  --color-peach-200: var(--peach-200);
+  --color-peach-800: var(--peach-800);
+  --color-mist-50: var(--mist-50);
+  --color-mist-100: var(--mist-100);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-fraunces);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+.bg-ambient {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, var(--pulse-100), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, var(--lavender-100), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 100%, var(--peach-100), transparent),
+    var(--background);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(79 121 184 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(79 121 184 / 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+}

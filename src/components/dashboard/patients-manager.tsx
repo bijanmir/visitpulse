@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { usePatients } from "@/hooks/use-practice-store";
+import { latestCheckInHasSafetyFlag } from "@/lib/check-in-utils";
 import {
   addPatient,
   removePatient,
@@ -193,6 +194,10 @@ export function PatientsManager() {
             <PatientRow
               patient={patient}
               hasCheckIn={patient.checkIns.length > 0}
+              safetyFlagLatest={latestCheckInHasSafetyFlag(
+                patient.id,
+                patient.checkIns,
+              )}
             />
             <div className="absolute right-14 top-1/2 flex -translate-y-1/2 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
               <button

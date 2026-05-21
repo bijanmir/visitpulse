@@ -4,6 +4,7 @@ import { PatientRow } from "@/components/dashboard/patient-row";
 import { DayNavigator } from "@/components/ui/day-navigator";
 import { Badge } from "@/components/ui/badge";
 import { usePatients } from "@/hooks/use-practice-store";
+import { latestCheckInHasSafetyFlag } from "@/lib/check-in-utils";
 import { mergeCheckIns } from "@/lib/check-in-store";
 import { toDayKey } from "@/lib/date-utils";
 import { getPatientsForDay } from "@/lib/practice-store";
@@ -74,6 +75,10 @@ export default function DashboardPage() {
                   key={patient.id}
                   patient={patient}
                   hasCheckIn={hasCheckInToday}
+                  safetyFlagLatest={latestCheckInHasSafetyFlag(
+                    patient.id,
+                    patient.checkIns,
+                  )}
                 />
               );
             })}

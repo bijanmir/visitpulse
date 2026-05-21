@@ -15,12 +15,18 @@ export type AuthState = {
   email: string;
 };
 
+export type NoteExportPrefs = {
+  includeBrandPrefix: boolean;
+  includeIdentifiers: boolean;
+};
+
 type PracticeData = {
   profile: ClinicianProfile;
   auth: AuthState;
   removedPatientIds: string[];
   customPatients: Patient[];
   customMedEvents: Record<string, MedEvent[]>;
+  noteExport: NoteExportPrefs;
 };
 
 const STORAGE_KEY = "visitpulse-practice";
@@ -264,6 +270,10 @@ function defaultData(): PracticeData {
     removedPatientIds: [],
     customPatients: [],
     customMedEvents: {},
+    noteExport: {
+      includeBrandPrefix: false,
+      includeIdentifiers: false,
+    },
   };
 }
 
@@ -272,7 +282,8 @@ function read(): PracticeData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultData();
-    return { ...defaultData(), ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw) as Partial<PracticeData>;
+    return { ...defaultData(), ...parsed, noteExport: { ...defaultData().noteExport, ...parsed.noteExport } };
   } catch {
     return defaultData();
   }
@@ -345,6 +356,19 @@ export function logout(): void {
   const data = read();
   data.auth.isAuthenticated = false;
   write(data);
+}
+
+export function getNoteExportPrefs(): NoteExportPrefs {
+  return read().noteExport ?? defaultData().noteExport;
+}
+
+export function updateNoteExportPrefs(
+  patch: Partial<NoteExportPrefs>,
+): NoteExportPrefs {
+  const data = read();
+  data.noteExport = { ...data.noteExport, ...patch };
+  write(data);
+  return data.noteExport;
 }
 
 export function setMfaEnabled(enabled: boolean): void {

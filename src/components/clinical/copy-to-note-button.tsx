@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { mergeCheckIns } from "@/lib/check-in-store";
+import { usePracticeStore } from "@/hooks/use-practice-store";
 import { getMedEvents } from "@/lib/practice-store";
 import type { Patient } from "@/modules/clinical/types";
 import { buildPrepCard } from "@/modules/visit-prep/prep-card";
@@ -17,13 +18,17 @@ export function CopyToNoteButton({
   size?: "sm" | "md";
 }) {
   const [copied, setCopied] = useState(false);
+  const { noteExport } = usePracticeStore();
 
   const text = useMemo(() => {
     const checkIns = mergeCheckIns(patient.checkIns, patient.id);
     const withCheckIns = { ...patient, checkIns };
     const prep = buildPrepCard(withCheckIns, getMedEvents(patient.id));
-    return formatPrepForNote(withCheckIns, prep);
-  }, [patient]);
+    return formatPrepForNote(withCheckIns, prep, {
+      includeBrandPrefix: noteExport.includeBrandPrefix,
+      includeIdentifiers: noteExport.includeIdentifiers,
+    });
+  }, [patient, noteExport]);
 
   async function handleCopy() {
     await navigator.clipboard.writeText(text);

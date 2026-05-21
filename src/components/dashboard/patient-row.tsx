@@ -14,9 +14,12 @@ const riskTone = {
 export function PatientRow({
   patient,
   hasCheckIn,
+  safetyFlagLatest = false,
 }: {
   patient: Patient;
   hasCheckIn: boolean;
+  /** Latest check-in (any date) has a safety flag */
+  safetyFlagLatest?: boolean;
 }) {
   const latestScale = patient.scales
     .filter((s) => s.type === "phq9")
@@ -28,7 +31,12 @@ export function PatientRow({
   return (
     <Link
       href={`/dashboard/patients/${patient.id}`}
-      className="group flex items-center gap-4 rounded-2xl border border-transparent bg-white/60 px-5 py-4 transition-all hover:border-pulse-200/80 hover:bg-white hover:shadow-md hover:shadow-pulse-100/40"
+      className={cn(
+        "group flex items-center gap-4 rounded-2xl border px-5 py-4 transition-all",
+        safetyFlagLatest
+          ? "border-rose-200/90 bg-rose-50/40 hover:bg-rose-50/70 hover:shadow-md hover:shadow-rose-100/50"
+          : "border-transparent bg-white/60 hover:border-pulse-200/80 hover:bg-white hover:shadow-md hover:shadow-pulse-100/40",
+      )}
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pulse-200 to-lavender-200 font-semibold text-pulse-800">
         {initials(patient.displayName)}
@@ -39,8 +47,11 @@ export function PatientRow({
             {patient.displayName}
           </span>
           <Badge tone={riskTone[patient.riskLevel]}>{patient.riskLevel}</Badge>
-          {patient.checkIns.some((c) => c.safetyFlag) && (
-            <AlertTriangle className="h-4 w-4 text-rose-600" />
+          {safetyFlagLatest && (
+            <Badge tone="rose" className="gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              Safety review
+            </Badge>
           )}
         </div>
         <p className="text-sm text-slate-500">{patient.diagnosis}</p>
@@ -51,7 +62,11 @@ export function PatientRow({
         </p>
         <p className="text-xs text-slate-500">
           PHQ-9: {latestScale?.score ?? "—"}
-          {hasCheckIn ? " · Brief ready" : " · Awaiting check-in"}
+          {safetyFlagLatest
+            ? " · Flagged check-in"
+            : hasCheckIn
+              ? " · Brief ready"
+              : " · Awaiting check-in"}
         </p>
       </div>
       <ChevronRight

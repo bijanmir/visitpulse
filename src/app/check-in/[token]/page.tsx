@@ -1,5 +1,6 @@
 "use client";
 
+import { CrisisDisclaimer } from "@/components/clinical/crisis-disclaimer";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -100,7 +101,11 @@ export default function CheckInPage() {
           Hi {patient.displayName.split(" ")[0]}
         </h1>
 
-        <Card className="mt-8">
+        <div className="mt-6">
+          <CrisisDisclaimer />
+        </div>
+
+        <Card className="mt-6">
           {step === 0 && (
             <div>
               <div className="flex items-center gap-2 text-pulse-700">
@@ -255,9 +260,9 @@ export default function CheckInPage() {
           </div>
         </Card>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
-          Demo check-in · Synthetic data only
-        </p>
+        <div className="mt-6">
+          <CrisisDisclaimer compact />
+        </div>
       </div>
     </div>
   );

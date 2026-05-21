@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Pill,
 } from "lucide-react";
+import { sampleNoteExportText } from "@/modules/visit-prep/note-export";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -116,13 +117,8 @@ export default function HomePage() {
                   <p className="font-sans text-xs font-semibold uppercase tracking-wider text-pulse-600">
                     Clipboard · ready to paste
                   </p>
-                  <pre className="mt-3 whitespace-pre-wrap">
-                    {`VISITPULSE — PRE-VISIT BRIEF
-Patient: Jordan M. | MDD
-PHQ-9: Improving (-4 pts)
-Active: Venlafaxine XR 150mg
-Patient message: "Foggy mornings…"
-• Explore adherence barriers`}
+                  <pre className="mt-3 max-h-72 overflow-y-auto whitespace-pre-wrap text-[11px] leading-relaxed">
+                    {sampleNoteExportText()}
                   </pre>
                 </div>
               </div>

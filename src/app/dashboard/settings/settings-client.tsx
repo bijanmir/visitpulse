@@ -9,14 +9,16 @@ import {
   DEMO_MFA_CODE,
   logout,
   setMfaEnabled,
+  updateNoteExportPrefs,
   updateProfile,
 } from "@/lib/practice-store";
-import { KeyRound, User } from "lucide-react";
+import { ClipboardCopy, KeyRound, Shield, User } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function SettingsClient() {
-  const { profile, auth, refresh } = usePracticeStore();
+  const { profile, auth, noteExport, refresh } = usePracticeStore();
   const router = useRouter();
   const [name, setName] = useState(profile.name);
   const [practice, setPractice] = useState(profile.practice);
@@ -119,6 +121,67 @@ export function SettingsClient() {
             Demo authenticator code: <strong>{DEMO_MFA_CODE}</strong>
           </p>
         )}
+      </Card>
+
+      <Card>
+        <div className="flex items-center gap-2 text-pulse-700">
+          <ClipboardCopy className="h-5 w-5" />
+          <h2 className="font-display text-lg font-semibold text-slate-800">
+            Copy to note
+          </h2>
+        </div>
+        <p className="mt-2 text-sm text-slate-600">
+          Defaults keep vendor branding and patient identifiers out of your
+          clipboard. Enable only if you want them in pasted notes.
+        </p>
+        <div className="mt-4 space-y-3">
+          <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={noteExport.includeIdentifiers}
+              onChange={(e) => {
+                updateNoteExportPrefs({
+                  includeIdentifiers: e.target.checked,
+                });
+                refresh();
+              }}
+              className="h-4 w-4 rounded border-slate-300 text-pulse-600"
+            />
+            Include patient name, diagnosis, and age in export
+          </label>
+          <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={noteExport.includeBrandPrefix}
+              onChange={(e) => {
+                updateNoteExportPrefs({
+                  includeBrandPrefix: e.target.checked,
+                });
+                refresh();
+              }}
+              className="h-4 w-4 rounded border-slate-300 text-pulse-600"
+            />
+            Include VisitPulse branding in export header
+          </label>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-center gap-2 text-pulse-700">
+          <Shield className="h-5 w-5" />
+          <h2 className="font-display text-lg font-semibold text-slate-800">
+            Safety & crisis workflow
+          </h2>
+        </div>
+        <p className="mt-2 text-sm text-slate-600">
+          VisitPulse is not a crisis service. Read what we do and do not do
+          before piloting with real patients.
+        </p>
+        <Link href="/safety" className="mt-4 inline-block">
+          <Button variant="secondary" size="sm">
+            View safety documentation
+          </Button>
+        </Link>
       </Card>
 
       <Button

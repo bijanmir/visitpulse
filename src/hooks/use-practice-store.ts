@@ -22,6 +22,10 @@ export function usePracticeStore() {
   return {
     profile: snapshot.profile,
     auth: snapshot.auth,
+    noteExport: snapshot.noteExport ?? {
+      includeBrandPrefix: false,
+      includeIdentifiers: false,
+    },
     patients: getPatients(),
     refresh,
   };

@@ -13,6 +13,16 @@ export function addDays(date: Date, days: number): Date {
   return next;
 }
 
+export function localDatetimeValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** Default 9:00 AM on a schedule day for new appointments */
+export function defaultVisitTimeForDay(dayKey: string): string {
+  return `${dayKey}T09:00`;
+}
+
 export function formatDayLabel(dayKey: string): string {
   const d = new Date(dayKey + "T12:00:00");
   const today = toDayKey(new Date());

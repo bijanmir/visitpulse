@@ -12,6 +12,7 @@ import {
   LogOut,
   Settings,
   Users,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,7 +25,13 @@ const links = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-export function DashboardSidebar() {
+export function DashboardSidebar({
+  mobileOpen = false,
+  onMobileClose,
+}: {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const profile = useProfile();
@@ -49,8 +56,23 @@ export function DashboardSidebar() {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-64 flex-col border-r border-slate-200/60 bg-white/95 px-4 py-6 backdrop-blur-md">
-      <Logo />
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-slate-200/60 bg-white/95 px-4 py-6 backdrop-blur-md transition-transform duration-200 md:z-40 md:max-w-none md:translate-x-0",
+        mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <Logo />
+        <button
+          type="button"
+          className="rounded-lg p-1 text-slate-400 hover:bg-mist-100 md:hidden"
+          aria-label="Close menu"
+          onClick={onMobileClose}
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
       <p className="mt-1 truncate px-1 text-xs text-slate-500">
         {profile.practice}
       </p>
@@ -65,6 +87,7 @@ export function DashboardSidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onMobileClose}
               className={cn(
                 "flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                 active

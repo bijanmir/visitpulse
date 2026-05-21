@@ -40,7 +40,7 @@ A check-in may be marked with a **safety flag** when certain demo rules fire (e.
 
 ## Clinician-facing expectations
 
-- **Schedule view** surfaces patients whose **latest check-in** is safety-flagged (demo: badge on day list).  
+- **Schedule** and **Patients** lists surface anyone whose **latest check-in** is safety-flagged (badge + highlight).  
 - **Pre-visit brief** includes `[SAFETY FLAG]` in copy-to-note text when applicable.  
 - Clinicians remain responsible for follow-up per their license, practice policy, and standard of care.
 

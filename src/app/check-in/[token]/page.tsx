@@ -4,6 +4,7 @@ import { CrisisDisclaimer } from "@/components/clinical/crisis-disclaimer";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { demoSafetyFlagFromCheckIn } from "@/lib/check-in-safety";
 import { saveCheckIn } from "@/lib/check-in-store";
 import { getPatientByToken } from "@/lib/practice-store";
 import { clinicalGuard } from "@/modules/compliance/guard";
@@ -27,6 +28,7 @@ export default function CheckInPage() {
   const [sideEffects, setSideEffects] = useState<string[]>([]);
   const [patientMessage, setPatientMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   if (!patient) {
     return (
@@ -65,6 +67,8 @@ export default function CheckInPage() {
 
   function handleSubmit() {
     if (!patient) return;
+    setSubmitError(null);
+
     const checkIn: CheckIn = {
       id: `ci-live-${Date.now()}`,
       patientId: patient.id,
@@ -72,20 +76,26 @@ export default function CheckInPage() {
       sleepHours: sleep,
       medicationAdherence: adherence,
       sideEffects: sideEffects.length ? sideEffects : ["None"],
-      safetyFlag:
-        adherence === "missed" &&
-        patientMessage.toLowerCase().includes("worse"),
+      safetyFlag: demoSafetyFlagFromCheckIn({
+        medicationAdherence: adherence,
+        patientMessage,
+      }),
       patientMessage: patientMessage.trim() || undefined,
     };
 
     try {
       clinicalGuard.assertCanPersistPhi();
-      saveCheckIn(checkIn);
-      setSubmitted(true);
-    } catch {
-      saveCheckIn(checkIn);
-      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Check-in is not available until your clinician enables secure storage.",
+      );
+      return;
     }
+
+    saveCheckIn(checkIn);
+    setSubmitted(true);
   }
 
   return (
@@ -247,6 +257,11 @@ export default function CheckInPage() {
               </Button>
             )}
           </div>
+          {submitError && (
+            <p className="mt-4 text-sm text-rose-700" role="alert">
+              {submitError}
+            </p>
+          )}
 
           <div className="mt-4 flex justify-center gap-1.5">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (

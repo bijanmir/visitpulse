@@ -40,15 +40,18 @@ export function CopyToNoteButton({
     <Button variant="soft" size={size} onClick={handleCopy}>
       {copied ? (
         <>
-          <ClipboardCheck className="h-4 w-4" />
+          <ClipboardCheck className="h-4 w-4" aria-hidden />
           Copied
         </>
       ) : (
         <>
-          <Copy className="h-4 w-4" />
+          <Copy className="h-4 w-4" aria-hidden />
           Copy to note
         </>
       )}
+      <span className="sr-only" role="status" aria-live="polite">
+        {copied ? "Brief copied to clipboard" : ""}
+      </span>
     </Button>
   );
 }

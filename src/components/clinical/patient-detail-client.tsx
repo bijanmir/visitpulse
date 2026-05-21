@@ -9,11 +9,13 @@ import { Card } from "@/components/ui/card";
 import { usePatients } from "@/hooks/use-practice-store";
 import { getMedEvents } from "@/lib/practice-store";
 import { CopyToNoteButton } from "@/components/clinical/copy-to-note-button";
+import { ScheduleAppointmentDialog } from "@/components/dashboard/schedule-appointment-dialog";
 import { formatTime, initials } from "@/lib/utils";
 import type { ScaleResponse } from "@/modules/clinical/types";
-import { ArrowLeft, Copy, ExternalLink } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Copy, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { useState } from "react";
 
 export function PatientDetailClient({ id }: { id: string }) {
   const patients = usePatients();
@@ -21,6 +23,7 @@ export function PatientDetailClient({ id }: { id: string }) {
   if (!patient) notFound();
 
   const medEvents = getMedEvents(id);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -49,11 +52,23 @@ export function PatientDetailClient({ id }: { id: string }) {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/check-in/${patient.checkInToken}`} target="_blank">
-            <Button variant="secondary" size="sm">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+          <Button
+            size="sm"
+            className="w-full sm:w-auto"
+            onClick={() => setScheduleOpen(true)}
+          >
+            <CalendarPlus className="h-4 w-4" />
+            Schedule / reschedule
+          </Button>
+          <Link
+            href={`/check-in/${patient.checkInToken}`}
+            target="_blank"
+            className="w-full sm:w-auto"
+          >
+            <Button variant="secondary" size="sm" className="w-full">
               <ExternalLink className="h-4 w-4" />
-              Patient check-in link
+              Check-in link
             </Button>
           </Link>
           <CopyToNoteButton patient={patient} />
@@ -108,6 +123,12 @@ export function PatientDetailClient({ id }: { id: string }) {
       <div className="mt-8">
         <MedTimelineView events={medEvents} />
       </div>
+
+      <ScheduleAppointmentDialog
+        open={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        patientId={patient.id}
+      />
     </div>
   );
 }

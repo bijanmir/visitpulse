@@ -18,8 +18,8 @@ export function DayNavigator({
   const selected = new Date(dayKey + "T12:00:00");
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="secondary"
           size="sm"
@@ -28,7 +28,7 @@ export function DayNavigator({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div className="min-w-[140px] text-center">
+        <div className="min-w-0 flex-1 text-center sm:min-w-[140px] sm:flex-none">
           <p className="text-sm font-semibold text-slate-800">
             {formatDayLabel(dayKey)}
           </p>
@@ -38,7 +38,6 @@ export function DayNavigator({
           variant="secondary"
           size="sm"
           onClick={() => onDayChange(toDayKey(addDays(selected, 1)))}
-          disabled={dayKey >= today}
           aria-label="Next day"
         >
           <ChevronRight className="h-4 w-4" />
@@ -52,13 +51,13 @@ export function DayNavigator({
       <Input
         type="date"
         value={dayKey}
-        max={today}
         onChange={(e) => e.target.value && onDayChange(e.target.value)}
-        className="max-w-[180px]"
+        className="w-full sm:max-w-[200px]"
+        aria-label="Jump to date"
       />
       {dayKeysWithData && dayKeysWithData.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {dayKeysWithData.slice(0, 8).map((key) => (
+          {dayKeysWithData.slice(0, 10).map((key) => (
             <button
               key={key}
               type="button"

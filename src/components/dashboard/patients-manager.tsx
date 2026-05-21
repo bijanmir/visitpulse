@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { usePatients } from "@/hooks/use-practice-store";
-import { latestCheckInHasSafetyFlag } from "@/lib/check-in-utils";
+import { buildSafetyFlagMap } from "@/lib/patient-safety-flags";
 import {
   addPatient,
   removePatient,
@@ -14,7 +14,8 @@ import {
 } from "@/lib/practice-store";
 import type { Patient, RiskLevel } from "@/modules/clinical/types";
 import { Pencil, Plus, Trash2, Users, X } from "lucide-react";
-import { useState } from "react";
+import { localDatetimeValue } from "@/lib/date-utils";
+import { useMemo, useState } from "react";
 
 const emptyForm: NewPatientInput = {
   displayName: "",
@@ -26,13 +27,12 @@ const emptyForm: NewPatientInput = {
   ),
 };
 
-function localDatetimeValue(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export function PatientsManager() {
   const patients = usePatients();
+  const safetyFlags = useMemo(
+    () => buildSafetyFlagMap(patients),
+    [patients],
+  );
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Patient | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -194,10 +194,7 @@ export function PatientsManager() {
             <PatientRow
               patient={patient}
               hasCheckIn={patient.checkIns.length > 0}
-              safetyFlagLatest={latestCheckInHasSafetyFlag(
-                patient.id,
-                patient.checkIns,
-              )}
+              safetyFlagLatest={safetyFlags[patient.id] ?? false}
             />
             <div className="absolute right-14 top-1/2 flex -translate-y-1/2 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
               <button

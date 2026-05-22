@@ -6,11 +6,8 @@ export interface AuditLogger {
 }
 
 class NoopAuditLogger implements AuditLogger {
-  async log(_event: AuditEvent): Promise<void> {
-    if (process.env.NODE_ENV === "development") {
-      // IDs only — never PHI in logs
-    }
-  }
+  // No-op until a real audit sink is configured (see SAFETY.md).
+  async log(): Promise<void> {}
 }
 
 class ConsoleAuditLogger implements AuditLogger {

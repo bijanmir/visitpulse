@@ -5,7 +5,7 @@ import { PatientSearch } from "@/components/dashboard/patient-search";
 import { useProfile } from "@/hooks/use-practice-store";
 import { getProfileInitials } from "@/lib/practice-store";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 

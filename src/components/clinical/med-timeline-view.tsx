@@ -13,7 +13,7 @@ const toneStyles = {
 };
 
 const toneBadge = {
-  active: "sage" as const,
+  active: "pulse" as const,
   changed: "lavender" as const,
   stopped: "slate" as const,
 };

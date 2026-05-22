@@ -3,12 +3,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { DayNavigator } from "@/components/ui/day-navigator";
+import { useClientMounted } from "@/hooks/use-client-mounted";
 import { mergeCheckIns } from "@/lib/check-in-store";
 import { toDayKey } from "@/lib/date-utils";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { CheckIn } from "@/modules/clinical/types";
 import { ClipboardList, MessageSquareQuote } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 const adherenceLabel = {
   full: "Full adherence",
@@ -23,12 +24,13 @@ export function CheckInsPanel({
   patientId: string;
   initialCheckIns: CheckIn[];
 }) {
-  const [checkIns, setCheckIns] = useState<CheckIn[]>(initialCheckIns);
   const [dayKey, setDayKey] = useState(() => toDayKey(new Date()));
-
-  useEffect(() => {
-    setCheckIns(mergeCheckIns(initialCheckIns, patientId));
-  }, [initialCheckIns, patientId]);
+  const mounted = useClientMounted();
+  const checkIns = useMemo(
+    () =>
+      mounted ? mergeCheckIns(initialCheckIns, patientId) : initialCheckIns,
+    [mounted, initialCheckIns, patientId],
+  );
 
   const dayKeysWithData = useMemo(
     () =>

@@ -9,7 +9,6 @@ import {
   GitBranch,
   LineChart,
   MessageSquare,
-  Pill,
 } from "lucide-react";
 import { sampleNoteExportText } from "@/modules/visit-prep/note-export";
 import Link from "next/link";

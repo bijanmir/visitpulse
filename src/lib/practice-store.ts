@@ -1,4 +1,6 @@
 import { toDayKey } from "@/lib/date-utils";
+import { newCheckInToken, newPatientId } from "@/lib/ids";
+import { initials } from "@/lib/utils";
 import type { MedEvent, Patient, RiskLevel } from "@/modules/clinical/types";
 
 export type ClinicianProfile = {
@@ -353,9 +355,28 @@ export function verifyMfa(code: string): boolean {
 }
 
 export function logout(): void {
+  // Clear PHI from the browser. Profile + auth shell are kept so the user can
+  // sign back in, but custom patients, custom med events, and check-in
+  // submissions stored in the browser are wiped.
   const data = read();
   data.auth.isAuthenticated = false;
+  data.customPatients = [];
+  data.customMedEvents = {};
   write(data);
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem("visitpulse-check-ins");
+      // Also clear any in-progress patient check-in drafts.
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("visitpulse-checkin-draft:")) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
 }
 
 export function getNoteExportPrefs(): NoteExportPrefs {
@@ -374,7 +395,6 @@ export function updateNoteExportPrefs(
 export function setMfaEnabled(enabled: boolean): void {
   const data = read();
   data.auth.mfaEnabled = enabled;
-  if (!enabled) data.auth.isAuthenticated = data.auth.isAuthenticated;
   write(data);
 }
 
@@ -409,8 +429,11 @@ export function getMedEvents(patientId: string): MedEvent[] {
   );
 }
 
-export function getPatientsForDay(dayKey: string): Patient[] {
-  return getPatients()
+export function getPatientsForDay(
+  dayKey: string,
+  patients?: Patient[],
+): Patient[] {
+  return (patients ?? getPatients())
     .filter((p) => toDayKey(p.nextVisitAt) === dayKey)
     .sort(
       (a, b) =>
@@ -433,13 +456,13 @@ export function addPatient(input: NewPatientInput): Patient {
     .replace(/[^a-z0-9]+/g, "-")
     .slice(0, 20);
   const patient: Patient = {
-    id: `pt-${Date.now()}`,
+    id: newPatientId(),
     displayName: input.displayName,
     age: input.age,
     diagnosis: input.diagnosis,
     nextVisitAt: input.nextVisitAt,
     riskLevel: input.riskLevel,
-    checkInToken: `checkin-${slug}-${Math.random().toString(36).slice(2, 7)}`,
+    checkInToken: newCheckInToken(slug),
     scales: [],
     checkIns: [],
   };
@@ -481,11 +504,5 @@ export function removePatient(id: string): void {
 }
 
 export function getProfileInitials(name: string): string {
-  return name
-    .replace(/^Dr\.\s*/i, "")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  return initials(name.replace(/^Dr\.\s*/i, ""));
 }

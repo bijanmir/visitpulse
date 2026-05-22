@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const [scheduleOpen, setScheduleOpen] = useState(false);
 
   const dayPatients = useMemo(
-    () => getPatientsForDay(dayKey),
+    () => getPatientsForDay(dayKey, patients),
     [patients, dayKey],
   );
 

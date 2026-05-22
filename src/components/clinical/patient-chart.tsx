@@ -2,10 +2,11 @@
 
 import { PrepCardView } from "@/components/clinical/prep-card-view";
 import { CheckInsPanel } from "@/components/clinical/check-ins-panel";
+import { useClientMounted } from "@/hooks/use-client-mounted";
 import { mergeCheckIns } from "@/lib/check-in-store";
 import type { MedEvent, Patient } from "@/modules/clinical/types";
 import { buildPrepCard } from "@/modules/visit-prep/prep-card";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 export function PatientChart({
   patient,
@@ -14,20 +15,16 @@ export function PatientChart({
   patient: Patient;
   medEvents: MedEvent[];
 }) {
-  const [checkIns, setCheckIns] = useState(patient.checkIns);
+  const mounted = useClientMounted();
 
-  useEffect(() => {
-    setCheckIns(mergeCheckIns(patient.checkIns, patient.id));
-  }, [patient.checkIns, patient.id]);
-
-  const patientWithCheckIns = useMemo(
-    () => ({ ...patient, checkIns }),
-    [patient, checkIns],
+  const checkIns = useMemo(
+    () => (mounted ? mergeCheckIns(patient.checkIns, patient.id) : patient.checkIns),
+    [mounted, patient.checkIns, patient.id],
   );
 
   const prep = useMemo(
-    () => buildPrepCard(patientWithCheckIns, medEvents),
-    [patientWithCheckIns, medEvents],
+    () => buildPrepCard({ ...patient, checkIns }, medEvents),
+    [patient, checkIns, medEvents],
   );
 
   return (

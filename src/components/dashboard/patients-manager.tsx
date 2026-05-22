@@ -188,6 +188,20 @@ export function PatientsManager() {
         </Card>
       )}
 
+      {patients.length === 0 && !showForm && (
+        <Card className="mt-8 text-center">
+          <Users className="mx-auto h-10 w-10 text-pulse-300" aria-hidden />
+          <p className="mt-3 font-medium text-slate-800">No patients yet</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Add your first patient to start building their visit brief.
+          </p>
+          <Button className="mt-4" onClick={openAdd}>
+            <Plus className="h-4 w-4" aria-hidden />
+            Add patient
+          </Button>
+        </Card>
+      )}
+
       <div className="mt-8 space-y-2">
         {patients.map((patient) => (
           <div key={patient.id} className="group relative">

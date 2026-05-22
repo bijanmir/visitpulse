@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
-import { formatTime, initials } from "@/lib/utils";
+import { sortByRecordedAtDesc } from "@/lib/sort";
+import { cn, formatTime, initials } from "@/lib/utils";
 import type { Patient } from "@/modules/clinical/types";
-import { cn } from "@/lib/utils";
 import { AlertTriangle, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -20,12 +20,9 @@ export function PatientRow({
   hasCheckIn: boolean;
   safetyFlagLatest?: boolean;
 }) {
-  const latestScale = patient.scales
-    .filter((s) => s.type === "phq9")
-    .sort(
-      (a, b) =>
-        new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
-    )[0];
+  const latestScale = sortByRecordedAtDesc(
+    patient.scales.filter((s) => s.type === "phq9"),
+  )[0];
 
   const statusText = safetyFlagLatest
     ? "Flagged check-in"
@@ -36,13 +33,24 @@ export function PatientRow({
   return (
     <Link
       href={`/dashboard/patients/${patient.id}`}
-      className={cn(
-        "group flex items-center gap-3 rounded-2xl border px-4 py-4 transition-all sm:gap-4 sm:px-5",
+      aria-label={
         safetyFlagLatest
-          ? "border-rose-200/90 bg-rose-50/40 hover:bg-rose-50/70 hover:shadow-md hover:shadow-rose-100/50"
+          ? `${patient.displayName} — safety flag on latest check-in`
+          : patient.displayName
+      }
+      className={cn(
+        "group relative flex items-center gap-3 rounded-2xl border px-4 py-4 transition-all sm:gap-4 sm:px-5",
+        safetyFlagLatest
+          ? "border-rose-300 bg-rose-50 pl-5 shadow-sm shadow-rose-100/60 ring-1 ring-rose-200/70 hover:bg-rose-50/90 hover:shadow-md hover:shadow-rose-200/60 sm:pl-6"
           : "border-transparent bg-white/60 hover:border-pulse-200/80 hover:bg-white hover:shadow-md hover:shadow-pulse-100/40",
       )}
     >
+      {safetyFlagLatest && (
+        <span
+          aria-hidden
+          className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-rose-500"
+        />
+      )}
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pulse-200 to-lavender-200 text-sm font-semibold text-pulse-800 sm:h-12 sm:w-12">
         {initials(patient.displayName)}
       </span>

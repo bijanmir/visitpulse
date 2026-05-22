@@ -1,3 +1,4 @@
+import { sortByRecordedAtDesc } from "@/lib/sort";
 import type { CheckIn } from "@/modules/clinical/types";
 
 const STORAGE_KEY = "visitpulse-check-ins";
@@ -22,12 +23,7 @@ export function saveCheckIn(checkIn: CheckIn): void {
 }
 
 export function getStoredCheckIns(patientId: string): CheckIn[] {
-  return readAll()
-    .filter((c) => c.patientId === patientId)
-    .sort(
-      (a, b) =>
-        new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
-    );
+  return sortByRecordedAtDesc(readAll().filter((c) => c.patientId === patientId));
 }
 
 export function mergeCheckIns(
@@ -36,14 +32,10 @@ export function mergeCheckIns(
 ): CheckIn[] {
   const stored = getStoredCheckIns(patientId);
   const seen = new Set<string>();
-  return [...stored, ...base]
-    .filter((c) => {
-      if (seen.has(c.id)) return false;
-      seen.add(c.id);
-      return true;
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
-    );
+  const unique = [...stored, ...base].filter((c) => {
+    if (seen.has(c.id)) return false;
+    seen.add(c.id);
+    return true;
+  });
+  return sortByRecordedAtDesc(unique);
 }

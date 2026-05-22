@@ -130,6 +130,23 @@ export function SafetyPageContent() {
         <li>Export of safety-flag events for practice review</li>
         <li>No PHI in application logs or third-party analytics</li>
       </ul>
+
+      <h2>What this demo is not</h2>
+      <p>
+        This build is a UI and workflow prototype with synthetic data. It is{" "}
+        <strong>not</strong> HIPAA-compliant. Before piloting with real
+        patients, the following must be in place:
+      </p>
+      <ul>
+        <li>Server-side storage with encryption at rest (no PHI in localStorage)</li>
+        <li>
+          Real authentication (the demo password and MFA code are hardcoded)
+        </li>
+        <li>An actual audit log that persists outside the browser</li>
+        <li>BAA with every vendor that may touch PHI</li>
+        <li>Per-clinician access control (today, every signed-in user sees every patient)</li>
+        <li>Documented data retention and deletion policies</li>
+      </ul>
     </article>
   );
 }

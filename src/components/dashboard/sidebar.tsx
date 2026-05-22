@@ -39,7 +39,7 @@ export function DashboardSidebar({
   const todayKey = toDayKey(new Date());
 
   const todayVisits = useMemo(
-    () => getPatientsForDay(todayKey),
+    () => getPatientsForDay(todayKey, patients),
     [patients, todayKey],
   );
 

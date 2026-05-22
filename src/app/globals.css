@@ -78,3 +78,27 @@ body {
     linear-gradient(to bottom, rgb(79 121 184 / 0.05) 1px, transparent 1px);
   background-size: 48px 48px;
 }
+
+@media print {
+  body {
+    background: white;
+  }
+  aside,
+  header,
+  .bg-ambient,
+  .bg-grid {
+    background: white !important;
+  }
+  /* Sidebar + sticky header are dashboard chrome — skip when printing. */
+  aside,
+  header {
+    display: none !important;
+  }
+  main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+}

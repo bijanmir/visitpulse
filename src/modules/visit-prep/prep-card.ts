@@ -1,3 +1,4 @@
+import { sortByRecordedAtDesc } from "@/lib/sort";
 import type { CheckIn, Patient, ScaleResponse } from "@/modules/clinical/types";
 import type { MedEvent } from "@/modules/clinical/types";
 
@@ -15,12 +16,7 @@ export type PrepCard = {
 };
 
 function scaleDelta(scales: ScaleResponse[], type: ScaleResponse["type"]) {
-  const filtered = scales
-    .filter((s) => s.type === type)
-    .sort(
-      (a, b) =>
-        new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
-    );
+  const filtered = sortByRecordedAtDesc(scales.filter((s) => s.type === type));
   if (filtered.length < 2) return null;
   const delta = filtered[0].score - filtered[1].score;
   const label =
@@ -32,10 +28,7 @@ export function buildPrepCard(
   patient: Patient,
   medEvents: MedEvent[],
 ): PrepCard {
-  const latestCheckIn = [...patient.checkIns].sort(
-    (a, b) =>
-      new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
-  )[0];
+  const latestCheckIn = sortByRecordedAtDesc(patient.checkIns)[0];
 
   const activeMeds = medEvents
     .filter((e) => !e.endedAt)

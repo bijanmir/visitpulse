@@ -6,32 +6,47 @@ import { ScaleSparkline } from "@/components/clinical/scale-sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { usePatients } from "@/hooks/use-practice-store";
 import { getMedEvents } from "@/lib/practice-store";
+import { sortByRecordedAtDesc } from "@/lib/sort";
 import { CopyToNoteButton } from "@/components/clinical/copy-to-note-button";
 import { ScheduleAppointmentDialog } from "@/components/dashboard/schedule-appointment-dialog";
+import { auditLogger } from "@/modules/compliance/audit";
 import { formatTime, initials } from "@/lib/utils";
 import type { ScaleResponse } from "@/modules/clinical/types";
-import { ArrowLeft, CalendarPlus, Copy, ExternalLink } from "lucide-react";
+import { ArrowLeft, CalendarPlus, ClipboardCheck, Copy, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function PatientDetailClient({ id }: { id: string }) {
   const patients = usePatients();
   const patient = patients.find((p) => p.id === id);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const { copied, copy, error } = useCopyToClipboard();
+
+  useEffect(() => {
+    if (!patient) return;
+    void auditLogger.log({
+      action: "patient.view",
+      actorId: "current-user",
+      resourceType: "patient",
+      resourceId: patient.id,
+    });
+  }, [patient]);
+
   if (!patient) notFound();
 
   const medEvents = getMedEvents(id);
-  const [scheduleOpen, setScheduleOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-4xl">
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-pulse-700"
+        className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-pulse-700 print:hidden"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" aria-hidden />
         Back to schedule
       </Link>
 
@@ -52,13 +67,13 @@ export function PatientDetailClient({ id }: { id: string }) {
             </p>
           </div>
         </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap print:hidden">
           <Button
             size="sm"
             className="w-full sm:w-auto"
             onClick={() => setScheduleOpen(true)}
           >
-            <CalendarPlus className="h-4 w-4" />
+            <CalendarPlus className="h-4 w-4" aria-hidden />
             Schedule / reschedule
           </Button>
           <Link
@@ -67,23 +82,41 @@ export function PatientDetailClient({ id }: { id: string }) {
             className="w-full sm:w-auto"
           >
             <Button variant="secondary" size="sm" className="w-full">
-              <ExternalLink className="h-4 w-4" />
+              <ExternalLink className="h-4 w-4" aria-hidden />
               Check-in link
             </Button>
           </Link>
           <CopyToNoteButton patient={patient} />
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              navigator.clipboard?.writeText(
-                `${window.location.origin}/check-in/${patient.checkInToken}`,
-              );
-            }}
-          >
-            <Copy className="h-4 w-4" />
-            Copy link
-          </Button>
+          <div className="flex flex-col items-stretch sm:items-start">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                const url = `${window.location.origin}/check-in/${patient.checkInToken}`;
+                void copy(url);
+              }}
+            >
+              {copied ? (
+                <>
+                  <ClipboardCheck className="h-4 w-4" aria-hidden />
+                  Link copied
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" aria-hidden />
+                  Copy link
+                </>
+              )}
+              <span className="sr-only" role="status" aria-live="polite">
+                {copied ? "Check-in link copied to clipboard" : ""}
+              </span>
+            </Button>
+            {error && (
+              <p className="mt-1 text-xs text-rose-700" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -140,13 +173,7 @@ function LatestScore({
   scales: ScaleResponse[];
   type: ScaleResponse["type"];
 }) {
-  const latest = scales
-    .filter((s) => s.type === type)
-    .sort(
-      (a, b) =>
-        new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
-    )[0];
-
+  const latest = sortByRecordedAtDesc(scales.filter((s) => s.type === type))[0];
   if (!latest) return null;
 
   return (

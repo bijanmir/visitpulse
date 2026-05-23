@@ -30,37 +30,40 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       />
 
       <div className="flex min-w-0 flex-1 flex-col md:pl-64">
-        <header className="sticky top-0 z-30 flex shrink-0 flex-col gap-3 border-b border-slate-200/60 bg-white/90 px-4 py-3 backdrop-blur-md sm:px-6 md:px-8">
-          <div className="flex items-center justify-between gap-3">
+        <header className="sticky top-0 z-30 shrink-0 border-b border-slate-200/60 bg-white/90 px-4 py-3 backdrop-blur-md sm:px-6 md:px-8">
+          {/* Mobile-only top row: hamburger + practice + profile chip */}
+          <div className="flex items-center justify-between gap-3 md:hidden">
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 hover:bg-mist-100 md:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 hover:bg-mist-100"
               aria-label="Open menu"
               onClick={() => setMobileNavOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="min-w-0 flex-1 md:hidden">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-slate-800">
                 {profile.practice}
               </p>
             </div>
-            <Link
-              href="/dashboard/settings"
-              className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-1 transition-colors hover:bg-mist-100 sm:gap-3"
-            >
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-medium text-slate-800">
-                  {profile.name}
-                </p>
-                <p className="text-xs text-slate-500">{profile.specialty}</p>
-              </div>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pulse-100 text-sm font-semibold text-pulse-700">
-                {getProfileInitials(profile.name)}
-              </span>
-            </Link>
+            <ProfileChip
+              name={profile.name}
+              specialty={profile.specialty}
+              showText={false}
+            />
           </div>
-          <PatientSearch className="w-full md:max-w-sm" />
+
+          {/* Search row — also carries the profile chip on desktop */}
+          <div className="mt-3 flex items-center gap-3 md:mt-0 md:justify-between">
+            <PatientSearch className="w-full md:max-w-sm md:flex-1" />
+            <div className="hidden md:block">
+              <ProfileChip
+                name={profile.name}
+                specialty={profile.specialty}
+                showText
+              />
+            </div>
+          </div>
         </header>
 
         <main
@@ -72,5 +75,32 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
+  );
+}
+
+function ProfileChip({
+  name,
+  specialty,
+  showText,
+}: {
+  name: string;
+  specialty: string;
+  showText: boolean;
+}) {
+  return (
+    <Link
+      href="/dashboard/settings"
+      className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-1 transition-colors hover:bg-mist-100 sm:gap-3"
+    >
+      {showText && (
+        <div className="hidden text-right sm:block">
+          <p className="text-sm font-medium text-slate-800">{name}</p>
+          <p className="text-xs text-slate-500">{specialty}</p>
+        </div>
+      )}
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pulse-100 text-sm font-semibold text-pulse-700">
+        {getProfileInitials(name)}
+      </span>
+    </Link>
   );
 }

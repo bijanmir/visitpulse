@@ -63,11 +63,22 @@ export function defaultPatients(): Patient[] {
       nextVisitAt: new Date(now + 2 * 60 * 60 * 1000).toISOString(),
       riskLevel: "moderate",
       checkInToken: "demo-jordan",
+      // Story: real improvement on Venlafaxine over 5 months.
       scales: [
+        { type: "phq9", score: 18, maxScore: 27, recordedAt: day(150) },
+        { type: "phq9", score: 17, maxScore: 27, recordedAt: day(120) },
+        { type: "phq9", score: 16, maxScore: 27, recordedAt: day(90) },
+        { type: "phq9", score: 14, maxScore: 27, recordedAt: day(60) },
+        { type: "phq9", score: 13, maxScore: 27, recordedAt: day(30) },
+        { type: "phq9", score: 11, maxScore: 27, recordedAt: day(14) },
         { type: "phq9", score: 11, maxScore: 27, recordedAt: day(2) },
-        { type: "phq9", score: 15, maxScore: 27, recordedAt: day(16) },
+        { type: "gad7", score: 13, maxScore: 21, recordedAt: day(150) },
+        { type: "gad7", score: 12, maxScore: 21, recordedAt: day(120) },
+        { type: "gad7", score: 11, maxScore: 21, recordedAt: day(90) },
+        { type: "gad7", score: 10, maxScore: 21, recordedAt: day(60) },
+        { type: "gad7", score: 10, maxScore: 21, recordedAt: day(30) },
+        { type: "gad7", score: 8, maxScore: 21, recordedAt: day(14) },
         { type: "gad7", score: 8, maxScore: 21, recordedAt: day(2) },
-        { type: "gad7", score: 12, maxScore: 21, recordedAt: day(16) },
       ],
       checkIns: [
         {
@@ -112,8 +123,19 @@ export function defaultPatients(): Patient[] {
       nextVisitAt: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
       riskLevel: "low",
       checkInToken: "demo-alex",
+      // Story: stable mild range, well-controlled on Lamotrigine + Lurasidone.
       scales: [
+        { type: "phq9", score: 8, maxScore: 27, recordedAt: day(140) },
+        { type: "phq9", score: 7, maxScore: 27, recordedAt: day(110) },
+        { type: "phq9", score: 6, maxScore: 27, recordedAt: day(80) },
+        { type: "phq9", score: 6, maxScore: 27, recordedAt: day(50) },
+        { type: "phq9", score: 5, maxScore: 27, recordedAt: day(20) },
         { type: "phq9", score: 6, maxScore: 27, recordedAt: day(3) },
+        { type: "gad7", score: 6, maxScore: 21, recordedAt: day(140) },
+        { type: "gad7", score: 5, maxScore: 21, recordedAt: day(110) },
+        { type: "gad7", score: 5, maxScore: 21, recordedAt: day(80) },
+        { type: "gad7", score: 4, maxScore: 21, recordedAt: day(50) },
+        { type: "gad7", score: 4, maxScore: 21, recordedAt: day(20) },
         { type: "gad7", score: 4, maxScore: 21, recordedAt: day(3) },
       ],
       checkIns: [
@@ -149,11 +171,21 @@ export function defaultPatients(): Patient[] {
       nextVisitAt: new Date(now + 26 * 60 * 60 * 1000).toISOString(),
       riskLevel: "elevated",
       checkInToken: "demo-sam",
+      // Story: worsening trend in the last ~3 weeks — coincides with
+      // Escitalopram stop and Buspirone start (see DEFAULT_MED_EVENTS).
       scales: [
+        { type: "phq9", score: 9, maxScore: 27, recordedAt: day(130) },
+        { type: "phq9", score: 10, maxScore: 27, recordedAt: day(100) },
+        { type: "phq9", score: 9, maxScore: 27, recordedAt: day(70) },
+        { type: "phq9", score: 11, maxScore: 27, recordedAt: day(45) },
+        { type: "phq9", score: 13, maxScore: 27, recordedAt: day(20) },
         { type: "phq9", score: 14, maxScore: 27, recordedAt: day(1) },
-        { type: "phq9", score: 10, maxScore: 27, recordedAt: day(14) },
+        { type: "gad7", score: 12, maxScore: 21, recordedAt: day(130) },
+        { type: "gad7", score: 13, maxScore: 21, recordedAt: day(100) },
+        { type: "gad7", score: 12, maxScore: 21, recordedAt: day(70) },
+        { type: "gad7", score: 14, maxScore: 21, recordedAt: day(45) },
+        { type: "gad7", score: 15, maxScore: 21, recordedAt: day(20) },
         { type: "gad7", score: 16, maxScore: 21, recordedAt: day(1) },
-        { type: "gad7", score: 11, maxScore: 21, recordedAt: day(14) },
       ],
       checkIns: [
         {
@@ -179,8 +211,19 @@ export function defaultPatients(): Patient[] {
       nextVisitAt: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
       riskLevel: "low",
       checkInToken: "demo-morgan",
+      // Story: long-term partial remission on Bupropion XL, scores stable in minimal range.
       scales: [
+        { type: "phq9", score: 8, maxScore: 27, recordedAt: day(140) },
+        { type: "phq9", score: 6, maxScore: 27, recordedAt: day(110) },
+        { type: "phq9", score: 6, maxScore: 27, recordedAt: day(80) },
+        { type: "phq9", score: 5, maxScore: 27, recordedAt: day(50) },
+        { type: "phq9", score: 5, maxScore: 27, recordedAt: day(20) },
         { type: "phq9", score: 5, maxScore: 27, recordedAt: day(5) },
+        { type: "gad7", score: 4, maxScore: 21, recordedAt: day(140) },
+        { type: "gad7", score: 3, maxScore: 21, recordedAt: day(110) },
+        { type: "gad7", score: 3, maxScore: 21, recordedAt: day(80) },
+        { type: "gad7", score: 3, maxScore: 21, recordedAt: day(50) },
+        { type: "gad7", score: 3, maxScore: 21, recordedAt: day(20) },
         { type: "gad7", score: 3, maxScore: 21, recordedAt: day(5) },
       ],
       checkIns: [],

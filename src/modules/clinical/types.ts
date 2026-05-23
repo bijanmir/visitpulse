@@ -7,6 +7,8 @@ export type ScaleResponse = {
   score: number;
   maxScore: number;
   recordedAt: string;
+  /** Per-question 0–3 answers when collected via patient check-in. */
+  items?: number[];
 };
 
 export type CheckIn = {
@@ -19,6 +21,8 @@ export type CheckIn = {
   safetyFlag: boolean;
   /** Free-text message from the patient to their clinician */
   patientMessage?: string;
+  /** Symptom scale scores administered during this check-in. */
+  scales?: ScaleResponse[];
 };
 
 export type Diagnosis = {

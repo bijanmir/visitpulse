@@ -38,8 +38,11 @@ function scaleDelta(scales: ScaleResponse[], type: ScaleResponse["type"]) {
 export function buildPrepCard(
   patient: Patient,
   medEvents: MedEvent[],
+  /** Caller-provided merged scales (seed + check-in). Falls back to patient.scales. */
+  scalesOverride?: ScaleResponse[],
 ): PrepCard {
   const latestCheckIn = sortByRecordedAtDesc(patient.checkIns)[0];
+  const scales = scalesOverride ?? patient.scales;
 
   const activeMeds = medEvents
     .filter((e) => !e.endedAt)
@@ -98,8 +101,8 @@ export function buildPrepCard(
     }
   }
 
-  const phq9 = scaleDelta(patient.scales, "phq9");
-  const gad7 = scaleDelta(patient.scales, "gad7");
+  const phq9 = scaleDelta(scales, "phq9");
+  const gad7 = scaleDelta(scales, "gad7");
 
   const summaryParts = [
     phq9 ? `Depression ${phq9.label.toLowerCase()}` : null,

@@ -6,10 +6,13 @@ import { ScaleSparkline } from "@/components/clinical/scale-sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useClientMounted } from "@/hooks/use-client-mounted";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { usePatients } from "@/hooks/use-practice-store";
 import { getMedEvents } from "@/lib/practice-store";
+import { mergePatientScales } from "@/lib/scales";
 import { sortByRecordedAtDesc } from "@/lib/sort";
+import { severity } from "@/lib/symptom-scales";
 import { CopyToNoteButton } from "@/components/clinical/copy-to-note-button";
 import { ScheduleAppointmentDialog } from "@/components/dashboard/schedule-appointment-dialog";
 import { auditLogger } from "@/modules/compliance/audit";
@@ -36,9 +39,12 @@ export function PatientDetailClient({ id }: { id: string }) {
     });
   }, [patient]);
 
+  const mounted = useClientMounted();
+
   if (!patient) notFound();
 
   const medEvents = getMedEvents(id);
+  const scales = mounted ? mergePatientScales(patient) : patient.scales;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -146,26 +152,18 @@ export function PatientDetailClient({ id }: { id: string }) {
             PHQ-9 trend
           </h3>
           <div className="mt-4">
-            <ScaleSparkline
-              scales={patient.scales}
-              type="phq9"
-              color="#4f79b8"
-            />
+            <ScaleSparkline scales={scales} type="phq9" color="#4f79b8" />
           </div>
-          <LatestScore scales={patient.scales} type="phq9" />
+          <LatestScore scales={scales} type="phq9" />
         </Card>
         <Card>
           <h3 className="font-display text-lg font-semibold text-slate-800">
             GAD-7 trend
           </h3>
           <div className="mt-4">
-            <ScaleSparkline
-              scales={patient.scales}
-              type="gad7"
-              color="#7b74a8"
-            />
+            <ScaleSparkline scales={scales} type="gad7" color="#7b74a8" />
           </div>
-          <LatestScore scales={patient.scales} type="gad7" />
+          <LatestScore scales={scales} type="gad7" />
         </Card>
       </div>
 
@@ -189,15 +187,26 @@ function LatestScore({
   scales: ScaleResponse[];
   type: ScaleResponse["type"];
 }) {
-  const latest = sortByRecordedAtDesc(scales.filter((s) => s.type === type))[0];
+  const filtered = sortByRecordedAtDesc(scales.filter((s) => s.type === type));
+  const latest = filtered[0];
   if (!latest) return null;
+  const prev = filtered[1];
+  const delta = prev ? latest.score - prev.score : null;
+  const deltaTone =
+    delta === null ? "slate" : delta < -2 ? "pulse" : delta > 2 ? "rose" : "lavender";
 
   return (
-    <p className="mt-2 text-sm text-slate-500">
-      Latest score:{" "}
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
       <Badge tone="pulse">
         {latest.score}/{latest.maxScore}
       </Badge>
-    </p>
+      <span className="text-slate-700">{severity(type, latest.score)}</span>
+      {delta !== null && (
+        <Badge tone={deltaTone}>
+          {delta > 0 ? "+" : ""}
+          {delta} since last
+        </Badge>
+      )}
+    </div>
   );
 }

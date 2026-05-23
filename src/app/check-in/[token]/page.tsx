@@ -1,6 +1,7 @@
 "use client";
 
 import { CrisisDisclaimer } from "@/components/clinical/crisis-disclaimer";
+import { SymptomScaleStep } from "@/components/clinical/symptom-scale-step";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,14 +10,15 @@ import { demoSafetyFlagFromCheckIn } from "@/lib/check-in-safety";
 import { saveCheckIn } from "@/lib/check-in-store";
 import { newCheckInId } from "@/lib/ids";
 import { getPatientByToken } from "@/lib/practice-store";
+import { GAD7, PHQ9 } from "@/lib/symptom-scales";
 import { clinicalGuard } from "@/modules/compliance/guard";
 import { auditLogger } from "@/modules/compliance/audit";
-import type { CheckIn, Patient } from "@/modules/clinical/types";
+import type { CheckIn, Patient, ScaleResponse } from "@/modules/clinical/types";
 import { CheckCircle2, MessageSquare, Moon, Pill } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 6;
 const sideEffectOptions = [
   "None",
   "Nausea",
@@ -30,6 +32,10 @@ type DraftState = {
   sleep: number;
   adherence: "full" | "partial" | "missed";
   sideEffects: string[];
+  phq9: (number | null)[];
+  phq9Skipped: boolean;
+  gad7: (number | null)[];
+  gad7Skipped: boolean;
   patientMessage: string;
 };
 
@@ -38,6 +44,10 @@ const EMPTY_DRAFT: DraftState = {
   sleep: 7,
   adherence: "full",
   sideEffects: [],
+  phq9: Array(PHQ9.questions.length).fill(null),
+  phq9Skipped: false,
+  gad7: Array(GAD7.questions.length).fill(null),
+  gad7Skipped: false,
   patientMessage: "",
 };
 
@@ -51,10 +61,31 @@ function loadDraft(token: string): DraftState {
     const raw = localStorage.getItem(draftKey(token));
     if (!raw) return EMPTY_DRAFT;
     const parsed = JSON.parse(raw) as Partial<DraftState>;
-    return { ...EMPTY_DRAFT, ...parsed };
+    // Defensive sizing: a stored draft from before the scale questions
+    // existed will be missing these fields; pad arrays to the right length.
+    const phq9 = Array.isArray(parsed.phq9)
+      ? padAnswers(parsed.phq9, PHQ9.questions.length)
+      : EMPTY_DRAFT.phq9;
+    const gad7 = Array.isArray(parsed.gad7)
+      ? padAnswers(parsed.gad7, GAD7.questions.length)
+      : EMPTY_DRAFT.gad7;
+    return { ...EMPTY_DRAFT, ...parsed, phq9, gad7 };
   } catch {
     return EMPTY_DRAFT;
   }
+}
+
+function padAnswers(arr: unknown[], len: number): (number | null)[] {
+  const out: (number | null)[] = Array(len).fill(null);
+  for (let i = 0; i < Math.min(arr.length, len); i++) {
+    const v = arr[i];
+    out[i] = typeof v === "number" ? v : null;
+  }
+  return out;
+}
+
+function answersComplete(arr: (number | null)[]): arr is number[] {
+  return arr.every((v) => typeof v === "number");
 }
 
 export default function CheckInPage() {
@@ -73,8 +104,6 @@ export default function CheckInPage() {
     );
   }
 
-  // Gate the interactive form on client mount so we can read any in-progress
-  // draft from localStorage synchronously via lazy state init below.
   if (!mounted) {
     return <CheckInScaffold patient={patient} />;
   }
@@ -93,7 +122,7 @@ function CheckInScaffold({ patient }: { patient: Patient }) {
           <CrisisDisclaimer />
         </div>
         <p className="mt-6 text-center text-sm text-slate-500">
-          Pre-visit check-in · about 2 minutes
+          Pre-visit check-in · about 4 minutes
         </p>
         <h1 className="font-display mt-2 text-center text-2xl font-semibold text-slate-800">
           Hi {patient.displayName.split(" ")[0]}
@@ -111,13 +140,14 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
     initial.adherence,
   );
   const [sideEffects, setSideEffects] = useState<string[]>(initial.sideEffects);
+  const [phq9, setPhq9] = useState<(number | null)[]>(initial.phq9);
+  const [phq9Skipped, setPhq9Skipped] = useState(initial.phq9Skipped);
+  const [gad7, setGad7] = useState<(number | null)[]>(initial.gad7);
+  const [gad7Skipped, setGad7Skipped] = useState(initial.gad7Skipped);
   const [patientMessage, setPatientMessage] = useState(initial.patientMessage);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Persist the in-progress draft so a reload doesn't lose patient input.
-  // This effect updates an external system (localStorage) — not React state —
-  // which is exactly what useEffect is for.
   useEffect(() => {
     if (submitted) return;
     const draft: DraftState = {
@@ -125,14 +155,30 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
       sleep,
       adherence,
       sideEffects,
+      phq9,
+      phq9Skipped,
+      gad7,
+      gad7Skipped,
       patientMessage,
     };
     try {
       localStorage.setItem(draftKey(token), JSON.stringify(draft));
     } catch {
-      // Storage may be unavailable (private mode); silently no-op.
+      // ignore
     }
-  }, [submitted, token, step, sleep, adherence, sideEffects, patientMessage]);
+  }, [
+    submitted,
+    token,
+    step,
+    sleep,
+    adherence,
+    sideEffects,
+    phq9,
+    phq9Skipped,
+    gad7,
+    gad7Skipped,
+    patientMessage,
+  ]);
 
   if (submitted) {
     return (
@@ -156,19 +202,44 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
 
   function handleSubmit() {
     setSubmitError(null);
+    const recordedAt = new Date().toISOString();
+
+    const scales: ScaleResponse[] = [];
+    if (!phq9Skipped && answersComplete(phq9)) {
+      scales.push({
+        type: "phq9",
+        score: phq9.reduce((sum, v) => sum + v, 0),
+        maxScore: PHQ9.maxScore,
+        recordedAt,
+        items: phq9,
+      });
+    }
+    if (!gad7Skipped && answersComplete(gad7)) {
+      scales.push({
+        type: "gad7",
+        score: gad7.reduce((sum, v) => sum + v, 0),
+        maxScore: GAD7.maxScore,
+        recordedAt,
+        items: gad7,
+      });
+    }
+    const phq9Items =
+      !phq9Skipped && answersComplete(phq9) ? phq9 : undefined;
 
     const checkIn: CheckIn = {
       id: newCheckInId(),
       patientId: patient.id,
-      recordedAt: new Date().toISOString(),
+      recordedAt,
       sleepHours: sleep,
       medicationAdherence: adherence,
       sideEffects: sideEffects.length ? sideEffects : ["None"],
       safetyFlag: demoSafetyFlagFromCheckIn({
         medicationAdherence: adherence,
         patientMessage,
+        phq9Items,
       }),
       patientMessage: patientMessage.trim() || undefined,
+      scales: scales.length ? scales : undefined,
     };
 
     try {
@@ -204,14 +275,14 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
           <Logo />
         </div>
 
-        {/* Crisis disclaimer is above the greeting on purpose:
+        {/* Crisis disclaimer above the greeting on purpose:
             a patient in distress should see 988/911 before anything else. */}
         <div className="mt-6">
           <CrisisDisclaimer />
         </div>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          Pre-visit check-in · about 2 minutes
+          Pre-visit check-in · about 4 minutes
         </p>
         <h1 className="font-display mt-2 text-center text-2xl font-semibold text-slate-800">
           Hi {patient.displayName.split(" ")[0]}
@@ -332,6 +403,32 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
           )}
 
           {step === 3 && (
+            <SymptomScaleStep
+              scale={PHQ9}
+              answers={phq9}
+              onChange={(next) => {
+                setPhq9(next);
+                if (phq9Skipped) setPhq9Skipped(false);
+              }}
+              skipped={phq9Skipped}
+              onSkip={() => setPhq9Skipped((s) => !s)}
+            />
+          )}
+
+          {step === 4 && (
+            <SymptomScaleStep
+              scale={GAD7}
+              answers={gad7}
+              onChange={(next) => {
+                setGad7(next);
+                if (gad7Skipped) setGad7Skipped(false);
+              }}
+              skipped={gad7Skipped}
+              onSkip={() => setGad7Skipped((s) => !s)}
+            />
+          )}
+
+          {step === 5 && (
             <div>
               <div className="flex items-center gap-2 text-pulse-700">
                 <MessageSquare className="h-5 w-5" aria-hidden />

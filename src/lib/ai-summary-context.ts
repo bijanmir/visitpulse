@@ -1,11 +1,12 @@
 import { sortByRecordedAtDesc } from "@/lib/sort";
 import { severity } from "@/lib/symptom-scales";
-import type {
-  CheckIn,
-  MedEvent,
-  Patient,
-  ScaleResponse,
-  ScaleType,
+import {
+  MAIN_SYMPTOM_CHANGE_LABELS,
+  type CheckIn,
+  type MedEvent,
+  type Patient,
+  type ScaleResponse,
+  type ScaleType,
 } from "@/modules/clinical/types";
 
 /**
@@ -77,7 +78,7 @@ function sortByStartedAtDesc(events: MedEvent[]): MedEvent[] {
   );
 }
 
-function describeLatestCheckIn(checkIns: CheckIn[]): string {
+function describeLatestCheckIn(patient: Patient, checkIns: CheckIn[]): string {
   const sorted = sortByRecordedAtDesc(checkIns);
   const latest = sorted[0];
   if (!latest) return "Latest check-in: none submitted.";
@@ -90,10 +91,18 @@ function describeLatestCheckIn(checkIns: CheckIn[]): string {
   if (sideEffects.length) parts.push(`side effects: ${sideEffects.join(", ")}`);
   if (latest.safetyFlag) parts.push(`safety flag: yes`);
   let line = `Latest check-in: ${parts.join(", ")}.`;
+  if (patient.mainSymptom && latest.mainSymptomChange) {
+    line += ` Main symptom ("${patient.mainSymptom}") is ${MAIN_SYMPTOM_CHANGE_LABELS[latest.mainSymptomChange].toLowerCase()} since the last visit.`;
+  }
   if (latest.patientMessage?.trim()) {
     line += ` Patient message (verbatim): "${latest.patientMessage.trim()}"`;
   }
   return line;
+}
+
+function describeMainSymptom(patient: Patient): string {
+  if (!patient.mainSymptom) return "";
+  return `Main symptom being tracked: ${patient.mainSymptom}.`;
 }
 
 function describeDiagnoses(patient: Patient): string {
@@ -122,6 +131,7 @@ export function buildPatientSummaryContext(
     "",
     describeDiagnoses(patient),
     `Age: ${patient.age}y`,
+    ...(patient.mainSymptom ? [describeMainSymptom(patient)] : []),
     "",
     describeActiveMeds(medEvents),
     describeRecentMedChanges(medEvents),
@@ -129,7 +139,7 @@ export function buildPatientSummaryContext(
     describeScale(scales, "phq9"),
     describeScale(scales, "gad7"),
     "",
-    describeLatestCheckIn(checkIns),
+    describeLatestCheckIn(patient, checkIns),
     "",
     "Produce the 2-3 sentence summary now.",
   ].join("\n");
@@ -157,6 +167,8 @@ function computeCacheVersion(
   return [
     `pt:${patient.id}`,
     `dx:${dxKey}`,
+    `ms:${patient.mainSymptom ?? "none"}`,
+    `msc:${latestCheckIn?.mainSymptomChange ?? "none"}`,
     `ci:${latestCheckIn?.id ?? "none"}`,
     `cic:${checkIns.length}`,
     `phq:${latestPhq9?.recordedAt ?? "none"}`,

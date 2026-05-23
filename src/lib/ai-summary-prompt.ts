@@ -285,6 +285,46 @@ Safety flag: no
 Summary:
 Recently started Sertraline 50mg (12 days in) with full adherence and a small early improvement in PHQ-9 (20, -2). Patient reports it's too early to tell, with mild nausea as the only side effect. Routine early-response check; expect more signal at the next visit.
 
+## Main symptom (CGI-C-style change rating)
+
+When the chart includes a "Main symptom being tracked" field, the patient is being asked at each check-in to rate how this specific symptom has changed since the last visit — much worse / a little worse / about the same / a little better / much better. This is a clinician-defined free-text symptom (e.g., "auditory hallucinations", "trouble falling asleep", "intrusive thoughts") used when the PHQ-9 / GAD-7 don't capture the presenting problem.
+
+When this data is present:
+- If the patient said "much worse" or "a little worse", this is one of the most important things to surface — usually mention it explicitly in the first or second sentence.
+- If the patient said "much better" or "a little better", note the improvement — it tells the clinician the targeted intervention is working.
+- If "about the same", you can usually skip mentioning it unless the rest of the picture is quiet. Don't fill space.
+- Quote the main symptom in the patient's framing ("auditory hallucinations", not "psychotic symptoms") since the clinician chose the wording deliberately.
+- Combine with PHQ-9 / GAD-7 only when both moved in the same direction. If the scales are stable but the main symptom is worse, lead with the main symptom — that's the clinically meaningful signal.
+
+EXAMPLE 15 — Psychosis-focused, patient-rated worsening despite stable affective scores
+
+Input:
+Diagnosis: Schizoaffective disorder, depressive type (F25.1)
+Main symptom being tracked: auditory hallucinations
+Active meds: Olanzapine 10mg (200 days), Sertraline 100mg (180 days)
+Latest PHQ-9: 7 (was 8 — stable, -1)
+Latest GAD-7: 6 (was 6 — stable, 0)
+Latest check-in: 1 day ago, sleep 6h, adherence full, side effects: weight gain, message: "Voices have been more intrusive this week, especially at night."
+Main symptom change: a little worse
+Safety flag: no
+
+Summary:
+Auditory hallucinations rated "a little worse" since the last visit, with the patient noting they're more intrusive at night and disrupting sleep (6h). Mood/anxiety scales are stable on Olanzapine 10mg + Sertraline 100mg with full adherence. Worth exploring whether the worsening is medication-related, sleep-driven, or symptomatic.
+
+EXAMPLE 16 — Insomnia-focused, patient-rated improvement
+
+Input:
+Diagnosis: Adjustment insomnia (F51.02), Generalized anxiety disorder (F41.1)
+Main symptom being tracked: trouble falling asleep
+Active meds: Trazodone 50mg at bedtime (30 days)
+Latest GAD-7: 8 (was 10 — improving, -2)
+Latest check-in: 2 days ago, sleep 6.5h, adherence full, side effects: morning grogginess, message: "Falling asleep faster but still groggy in the morning."
+Main symptom change: a little better
+Safety flag: no
+
+Summary:
+Trouble falling asleep is "a little better" on Trazodone 50mg with anxiety also trending down (GAD-7 8, -2). Patient noted faster sleep onset but persistent morning grogginess. Worth weighing dose vs. tolerability — the symptom is moving in the right direction.
+
 ## When data is incomplete or missing
 
 The chart you're shown may have gaps. Handle them like this:

@@ -13,12 +13,26 @@ import { getPatientByToken } from "@/lib/practice-store";
 import { GAD7, PHQ9 } from "@/lib/symptom-scales";
 import { clinicalGuard } from "@/modules/compliance/guard";
 import { auditLogger } from "@/modules/compliance/audit";
-import type { CheckIn, Patient, ScaleResponse } from "@/modules/clinical/types";
-import { CheckCircle2, MessageSquare, Moon, Pill } from "lucide-react";
+import {
+  MAIN_SYMPTOM_CHANGE_LABELS,
+  type CheckIn,
+  type MainSymptomChange,
+  type Patient,
+  type ScaleResponse,
+} from "@/modules/clinical/types";
+import { Activity, CheckCircle2, MessageSquare, Moon, Pill } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const TOTAL_STEPS = 6;
+type StepKey =
+  | "main_symptom"
+  | "sleep"
+  | "adherence"
+  | "side_effects"
+  | "phq9"
+  | "gad7"
+  | "message";
+
 const sideEffectOptions = [
   "None",
   "Nausea",
@@ -27,8 +41,17 @@ const sideEffectOptions = [
   "Headache",
 ];
 
+const MAIN_SYMPTOM_OPTIONS: { value: MainSymptomChange; label: string }[] = [
+  { value: "much_worse", label: MAIN_SYMPTOM_CHANGE_LABELS.much_worse },
+  { value: "a_little_worse", label: MAIN_SYMPTOM_CHANGE_LABELS.a_little_worse },
+  { value: "about_the_same", label: MAIN_SYMPTOM_CHANGE_LABELS.about_the_same },
+  { value: "a_little_better", label: MAIN_SYMPTOM_CHANGE_LABELS.a_little_better },
+  { value: "much_better", label: MAIN_SYMPTOM_CHANGE_LABELS.much_better },
+];
+
 type DraftState = {
   step: number;
+  mainSymptomChange: MainSymptomChange | null;
   sleep: number;
   adherence: "full" | "partial" | "missed";
   sideEffects: string[];
@@ -41,6 +64,7 @@ type DraftState = {
 
 const EMPTY_DRAFT: DraftState = {
   step: 0,
+  mainSymptomChange: null,
   sleep: 7,
   adherence: "full",
   sideEffects: [],
@@ -61,8 +85,6 @@ function loadDraft(token: string): DraftState {
     const raw = localStorage.getItem(draftKey(token));
     if (!raw) return EMPTY_DRAFT;
     const parsed = JSON.parse(raw) as Partial<DraftState>;
-    // Defensive sizing: a stored draft from before the scale questions
-    // existed will be missing these fields; pad arrays to the right length.
     const phq9 = Array.isArray(parsed.phq9)
       ? padAnswers(parsed.phq9, PHQ9.questions.length)
       : EMPTY_DRAFT.phq9;
@@ -135,6 +157,9 @@ function CheckInScaffold({ patient }: { patient: Patient }) {
 function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
   const initial = loadDraft(token);
   const [step, setStep] = useState(initial.step);
+  const [mainSymptomChange, setMainSymptomChange] = useState<MainSymptomChange | null>(
+    initial.mainSymptomChange,
+  );
   const [sleep, setSleep] = useState(initial.sleep);
   const [adherence, setAdherence] = useState<DraftState["adherence"]>(
     initial.adherence,
@@ -148,10 +173,28 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Step list is dynamic: only include "main_symptom" when the clinician has
+  // configured one for this patient. This is the CGI-C-style question that
+  // works for presentations the PHQ-9 / GAD-7 don't cover (psychosis,
+  // insomnia, OCD, etc.).
+  const steps = useMemo<StepKey[]>(() => {
+    const list: StepKey[] = [];
+    if (patient.mainSymptom) list.push("main_symptom");
+    list.push("sleep", "adherence", "side_effects", "phq9", "gad7", "message");
+    return list;
+  }, [patient.mainSymptom]);
+
+  const totalSteps = steps.length;
+  // Defensive clamp in case the persisted draft was for a different patient
+  // configuration (e.g., main symptom was added after a draft was saved).
+  const safeStep = Math.min(Math.max(step, 0), totalSteps - 1);
+  const currentStep = steps[safeStep];
+
   useEffect(() => {
     if (submitted) return;
     const draft: DraftState = {
-      step,
+      step: safeStep,
+      mainSymptomChange,
       sleep,
       adherence,
       sideEffects,
@@ -169,7 +212,8 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
   }, [
     submitted,
     token,
-    step,
+    safeStep,
+    mainSymptomChange,
     sleep,
     adherence,
     sideEffects,
@@ -201,6 +245,7 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
   }
 
   function handleSubmit() {
+    if (!patient) return;
     setSubmitError(null);
     const recordedAt = new Date().toISOString();
 
@@ -237,9 +282,11 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
         medicationAdherence: adherence,
         patientMessage,
         phq9Items,
+        mainSymptomChange: mainSymptomChange ?? undefined,
       }),
       patientMessage: patientMessage.trim() || undefined,
       scales: scales.length ? scales : undefined,
+      mainSymptomChange: mainSymptomChange ?? undefined,
     };
 
     try {
@@ -268,6 +315,9 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
     setSubmitted(true);
   }
 
+  const isFirst = safeStep === 0;
+  const isLast = safeStep === totalSteps - 1;
+
   return (
     <div className="min-h-screen bg-ambient">
       <div className="mx-auto max-w-lg px-6 py-10">
@@ -282,14 +332,57 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
         </div>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          Pre-visit check-in · about 4 minutes
+          Pre-visit check-in · about {patient.mainSymptom ? "5" : "4"} minutes
         </p>
         <h1 className="font-display mt-2 text-center text-2xl font-semibold text-slate-800">
           Hi {patient.displayName.split(" ")[0]}
         </h1>
 
         <Card className="mt-6">
-          {step === 0 && (
+          {currentStep === "main_symptom" && patient.mainSymptom && (
+            <div>
+              <div className="flex items-center gap-2 text-pulse-700">
+                <Activity className="h-5 w-5" aria-hidden />
+                <h2 className="font-medium text-slate-800">
+                  Main concern this visit
+                </h2>
+              </div>
+              <p className="mt-2 text-sm text-slate-600">
+                Thinking about{" "}
+                <span className="font-medium text-slate-800">
+                  {patient.mainSymptom}
+                </span>{" "}
+                — how has it changed since your last appointment?
+              </p>
+              <div
+                className="mt-5 grid gap-2"
+                role="radiogroup"
+                aria-label={`How has ${patient.mainSymptom} changed since your last appointment?`}
+              >
+                {MAIN_SYMPTOM_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={mainSymptomChange === value}
+                    onClick={() => setMainSymptomChange(value)}
+                    className={`rounded-xl px-4 py-3 text-left text-sm font-medium transition-colors ${
+                      mainSymptomChange === value
+                        ? "bg-pulse-100 text-pulse-800 ring-2 ring-pulse-300"
+                        : "bg-mist-50 text-slate-600 ring-1 ring-slate-200 hover:bg-mist-100"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-slate-400">
+                You can skip this if you&apos;d rather not answer.
+              </p>
+            </div>
+          )}
+
+          {currentStep === "sleep" && (
             <div>
               <div className="flex items-center gap-2 text-pulse-700">
                 <Moon className="h-5 w-5" aria-hidden />
@@ -320,7 +413,7 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
             </div>
           )}
 
-          {step === 1 && (
+          {currentStep === "adherence" && (
             <div>
               <div className="flex items-center gap-2 text-pulse-700">
                 <Pill className="h-5 w-5" aria-hidden />
@@ -359,7 +452,7 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
             </div>
           )}
 
-          {step === 2 && (
+          {currentStep === "side_effects" && (
             <div>
               <h2 className="font-medium text-slate-800">
                 Any side effects recently?
@@ -402,7 +495,7 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
             </div>
           )}
 
-          {step === 3 && (
+          {currentStep === "phq9" && (
             <SymptomScaleStep
               scale={PHQ9}
               answers={phq9}
@@ -415,7 +508,7 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
             />
           )}
 
-          {step === 4 && (
+          {currentStep === "gad7" && (
             <SymptomScaleStep
               scale={GAD7}
               answers={gad7}
@@ -428,7 +521,7 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
             />
           )}
 
-          {step === 5 && (
+          {currentStep === "message" && (
             <div>
               <div className="flex items-center gap-2 text-pulse-700">
                 <MessageSquare className="h-5 w-5" aria-hidden />
@@ -457,7 +550,7 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
           )}
 
           <div className="mt-8 flex gap-3">
-            {step > 0 && (
+            {!isFirst && (
               <Button
                 variant="secondary"
                 className="flex-1"
@@ -466,7 +559,7 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
                 Back
               </Button>
             )}
-            {step < TOTAL_STEPS - 1 ? (
+            {!isLast ? (
               <Button className="flex-1" onClick={() => setStep((s) => s + 1)}>
                 Continue
               </Button>
@@ -486,15 +579,15 @@ function CheckInForm({ patient, token }: { patient: Patient; token: string }) {
             className="mt-4 flex justify-center gap-1.5"
             role="progressbar"
             aria-valuemin={1}
-            aria-valuemax={TOTAL_STEPS}
-            aria-valuenow={step + 1}
-            aria-label={`Step ${step + 1} of ${TOTAL_STEPS}`}
+            aria-valuemax={totalSteps}
+            aria-valuenow={safeStep + 1}
+            aria-label={`Step ${safeStep + 1} of ${totalSteps}`}
           >
-            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            {Array.from({ length: totalSteps }).map((_, i) => (
               <span
                 key={i}
                 className={`h-1.5 w-8 rounded-full transition-colors ${
-                  i === step ? "bg-pulse-500" : "bg-slate-200"
+                  i === safeStep ? "bg-pulse-500" : "bg-slate-200"
                 }`}
               />
             ))}

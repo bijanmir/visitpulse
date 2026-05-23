@@ -20,6 +20,7 @@ const emptyForm = (): NewPatientInput => ({
   diagnoses: [],
   riskLevel: "low",
   nextVisitAt: localDatetimeValue(new Date(Date.now() + 24 * 60 * 60 * 1000)),
+  mainSymptom: "",
 });
 
 function formFromPatient(patient: Patient): NewPatientInput {
@@ -29,6 +30,7 @@ function formFromPatient(patient: Patient): NewPatientInput {
     diagnoses: patient.diagnoses,
     riskLevel: patient.riskLevel,
     nextVisitAt: localDatetimeValue(new Date(patient.nextVisitAt)),
+    mainSymptom: patient.mainSymptom ?? "",
   };
 }
 
@@ -145,6 +147,22 @@ function Body({
           At least one diagnosis is required.
         </p>
       )}
+      <div>
+        <Label>Main symptom (optional)</Label>
+        <Input
+          value={form.mainSymptom ?? ""}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, mainSymptom: e.target.value }))
+          }
+          placeholder="e.g. auditory hallucinations, trouble falling asleep, panic episodes"
+        />
+        <p className="mt-1.5 text-xs text-slate-500">
+          The primary problem you&apos;re tracking. When set, each check-in
+          asks the patient how this has changed since last visit. Useful for
+          presentations the PHQ-9 / GAD-7 don&apos;t capture (psychosis,
+          insomnia, OCD, etc.).
+        </p>
+      </div>
       <div>
         <Label>Next visit</Label>
         <Input

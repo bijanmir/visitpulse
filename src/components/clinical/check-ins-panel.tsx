@@ -7,8 +7,11 @@ import { useClientMounted } from "@/hooks/use-client-mounted";
 import { mergeCheckIns } from "@/lib/check-in-store";
 import { toDayKey } from "@/lib/date-utils";
 import { formatDate, formatTime } from "@/lib/utils";
-import type { CheckIn } from "@/modules/clinical/types";
-import { ClipboardList, MessageSquareQuote } from "lucide-react";
+import {
+  MAIN_SYMPTOM_CHANGE_LABELS,
+  type CheckIn,
+} from "@/modules/clinical/types";
+import { Activity, ClipboardList, MessageSquareQuote } from "lucide-react";
 import { useMemo, useState } from "react";
 
 const adherenceLabel = {
@@ -119,6 +122,18 @@ export function CheckInsPanel({
                   </dd>
                 </div>
               </dl>
+
+              {checkIn.mainSymptomChange && (
+                <div className="mt-4 flex items-center gap-2 rounded-xl bg-pulse-50 px-4 py-2.5 ring-1 ring-pulse-100">
+                  <Activity className="h-3.5 w-3.5 text-pulse-700" aria-hidden />
+                  <span className="text-xs font-semibold uppercase tracking-wide text-pulse-700">
+                    Main symptom
+                  </span>
+                  <span className="text-sm text-slate-700">
+                    {MAIN_SYMPTOM_CHANGE_LABELS[checkIn.mainSymptomChange]}
+                  </span>
+                </div>
+              )}
 
               {checkIn.patientMessage ? (
                 <div className="mt-4 rounded-xl bg-lavender-100/50 px-4 py-3 ring-1 ring-lavender-200/60">

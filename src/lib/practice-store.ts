@@ -97,6 +97,7 @@ export function defaultPatients(): Patient[] {
       nextVisitAt: new Date(now + 2 * 60 * 60 * 1000).toISOString(),
       riskLevel: "moderate",
       checkInToken: "demo-jordan",
+      mainSymptom: "low mood and anhedonia",
       // Story: real improvement on Venlafaxine over 5 months.
       scales: [
         { type: "phq9", score: 18, maxScore: 27, recordedAt: day(150) },
@@ -124,6 +125,7 @@ export function defaultPatients(): Patient[] {
           sideEffects: ["mild nausea"],
           safetyFlag: false,
           patientMessage: "Felt foggy in the mornings. Hard to focus at work.",
+          mainSymptomChange: "a_little_better",
         },
         {
           id: "ci-1b",
@@ -157,6 +159,7 @@ export function defaultPatients(): Patient[] {
       nextVisitAt: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
       riskLevel: "low",
       checkInToken: "demo-alex",
+      mainSymptom: "racing thoughts and irritability",
       // Story: stable mild range, well-controlled on Lamotrigine + Lurasidone.
       scales: [
         { type: "phq9", score: 8, maxScore: 27, recordedAt: day(140) },
@@ -205,6 +208,7 @@ export function defaultPatients(): Patient[] {
       nextVisitAt: new Date(now + 26 * 60 * 60 * 1000).toISOString(),
       riskLevel: "elevated",
       checkInToken: "demo-sam",
+      mainSymptom: "intrusive thoughts and hypervigilance",
       // Story: worsening trend in the last ~3 weeks — coincides with
       // Escitalopram stop and Buspirone start (see DEFAULT_MED_EVENTS).
       scales: [
@@ -232,6 +236,7 @@ export function defaultPatients(): Patient[] {
           safetyFlag: true,
           patientMessage:
             "Skipped lamotrigine twice this week. Anxiety has been worse — wanted you to know before our visit.",
+          mainSymptomChange: "much_worse",
         },
       ],
     },
@@ -245,6 +250,7 @@ export function defaultPatients(): Patient[] {
       nextVisitAt: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
       riskLevel: "low",
       checkInToken: "demo-morgan",
+      mainSymptom: "early-morning waking",
       // Story: long-term partial remission on Bupropion XL, scores stable in minimal range.
       scales: [
         { type: "phq9", score: 8, maxScore: 27, recordedAt: day(140) },
@@ -378,6 +384,10 @@ function normalizePatient(p: unknown): Patient | null {
   if (typeof r.id !== "string" || typeof r.displayName !== "string") return null;
   // `diagnoses` is the current shape; `diagnosis` (string) is legacy.
   const diagnoses = normalizeDiagnoses(r.diagnoses ?? r.diagnosis);
+  const mainSymptom =
+    typeof r.mainSymptom === "string" && r.mainSymptom.trim()
+      ? r.mainSymptom.trim()
+      : undefined;
   return {
     id: r.id,
     displayName: r.displayName,
@@ -388,6 +398,7 @@ function normalizePatient(p: unknown): Patient | null {
     checkInToken: typeof r.checkInToken === "string" ? r.checkInToken : "",
     scales: Array.isArray(r.scales) ? (r.scales as Patient["scales"]) : [],
     checkIns: Array.isArray(r.checkIns) ? (r.checkIns as Patient["checkIns"]) : [],
+    mainSymptom,
   };
 }
 
@@ -635,6 +646,8 @@ export type NewPatientInput = {
   diagnoses: Diagnosis[];
   riskLevel: RiskLevel;
   nextVisitAt: string;
+  /** Free-text presenting problem; drives the CGI-C-style check-in question. */
+  mainSymptom?: string;
 };
 
 export function addPatient(input: NewPatientInput): Patient {
@@ -653,6 +666,7 @@ export function addPatient(input: NewPatientInput): Patient {
     checkInToken: newCheckInToken(slug),
     scales: [],
     checkIns: [],
+    mainSymptom: input.mainSymptom?.trim() || undefined,
   };
   data.customPatients.push(patient);
   data.customMedEvents[patient.id] = [];

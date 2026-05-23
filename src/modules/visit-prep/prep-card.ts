@@ -1,5 +1,10 @@
 import { sortByRecordedAtDesc } from "@/lib/sort";
-import type { CheckIn, Patient, ScaleResponse } from "@/modules/clinical/types";
+import {
+  MAIN_SYMPTOM_CHANGE_LABELS,
+  type CheckIn,
+  type Patient,
+  type ScaleResponse,
+} from "@/modules/clinical/types";
 import type { MedEvent } from "@/modules/clinical/types";
 
 export type CheckInHighlight = {
@@ -77,6 +82,20 @@ export function buildPrepCard(
     checkInHighlights.push({
       trigger: "Safety flag",
       suggestion: "review safety screen responses",
+    });
+  }
+  if (
+    patient.mainSymptom &&
+    latestCheckIn?.mainSymptomChange &&
+    latestCheckIn.mainSymptomChange !== "about_the_same"
+  ) {
+    const label = MAIN_SYMPTOM_CHANGE_LABELS[latestCheckIn.mainSymptomChange];
+    const isWorse = latestCheckIn.mainSymptomChange.includes("worse");
+    checkInHighlights.push({
+      trigger: `${patient.mainSymptom} — ${label.toLowerCase()}`,
+      suggestion: isWorse
+        ? "patient reports decline since last visit"
+        : "patient reports improvement since last visit",
     });
   }
   if (latestCheckIn?.medicationAdherence === "partial") {

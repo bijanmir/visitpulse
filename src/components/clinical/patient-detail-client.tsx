@@ -194,6 +194,18 @@ export function PatientDetailClient({ id }: { id: string }) {
         </ul>
       )}
 
+      {patient.mainSymptom && (
+        <p className="mt-3 text-sm text-slate-600">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Tracking ·{" "}
+          </span>
+          <span className="text-slate-800">{patient.mainSymptom}</span>
+          <span className="ml-2 text-xs text-slate-400">
+            (asked at each check-in)
+          </span>
+        </p>
+      )}
+
       {confirmRemove && (
         <div
           className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50/60 px-4 py-3 print:hidden"

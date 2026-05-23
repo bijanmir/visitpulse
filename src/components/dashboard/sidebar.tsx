@@ -7,6 +7,7 @@ import { getPatientsForDay } from "@/lib/practice-store";
 import { cn } from "@/lib/utils";
 import { mergeCheckIns } from "@/lib/check-in-store";
 import {
+  BarChart3,
   CalendarDays,
   LayoutDashboard,
   LogOut,
@@ -22,6 +23,7 @@ import { logout } from "@/lib/practice-store";
 const links = [
   { href: "/dashboard", label: "Schedule", icon: LayoutDashboard },
   { href: "/dashboard/patients", label: "Patients", icon: Users },
+  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

@@ -101,4 +101,16 @@ body {
   .print\:hidden {
     display: none !important;
   }
+  /* Reports page tuning: keep each card on a single page where possible
+     and prevent long tables from breaking awkwardly. */
+  section,
+  .group,
+  ul,
+  li {
+    break-inside: avoid;
+  }
+  /* Tighten the page margins the browser inserts by default. */
+  @page {
+    margin: 0.5in;
+  }
 }

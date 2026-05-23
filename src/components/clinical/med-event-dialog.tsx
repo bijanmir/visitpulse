@@ -227,17 +227,18 @@ function Body({
         />
       </div>
 
-      <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-        <Button type="submit" className="flex-1">
-          {editing ? "Save changes" : "Add medication"}
-        </Button>
+      <div className="flex gap-2 border-t border-slate-100 pt-4">
         <Button
           type="button"
           variant="secondary"
-          className="flex-1"
+          size="lg"
+          className="flex-1 font-semibold"
           onClick={onClose}
         >
           Cancel
+        </Button>
+        <Button type="submit" size="lg" className="flex-[2] font-semibold">
+          {editing ? "Save changes" : "Add medication"}
         </Button>
       </div>
 

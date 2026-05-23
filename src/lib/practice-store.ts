@@ -49,6 +49,40 @@ export const DEFAULT_PROFILE: ClinicianProfile = {
   email: "sebastian@sdpsychiatry.demo",
 };
 
+/**
+ * Every prior shipped value of `DEFAULT_PROFILE`. When `read()` finds a
+ * stored profile that EXACTLY matches one of these, it treats the profile
+ * as "never edited by the user" and replaces it with the current
+ * DEFAULT_PROFILE. Without this, anyone who logged in on an older build
+ * gets stuck with the stale email/practice forever (the localStorage
+ * snapshot would override the new default).
+ *
+ * Maintenance contract: any time you change DEFAULT_PROFILE, append the
+ * old value to this array. User-edited profiles (which won't exactly
+ * match any entry) are untouched.
+ */
+const PRIOR_DEFAULT_PROFILES: readonly ClinicianProfile[] = [
+  {
+    id: "clin-1",
+    name: "Dr. Elena Vasquez",
+    practice: "Harbor Psychiatry",
+    specialty: "Adult Psychiatry",
+    email: "elena@harborpsychiatry.demo",
+  },
+];
+
+function isPriorDefaultProfile(p: unknown): boolean {
+  if (!p || typeof p !== "object") return false;
+  return PRIOR_DEFAULT_PROFILES.some(
+    (prior) =>
+      (p as ClinicianProfile).id === prior.id &&
+      (p as ClinicianProfile).name === prior.name &&
+      (p as ClinicianProfile).practice === prior.practice &&
+      (p as ClinicianProfile).specialty === prior.specialty &&
+      (p as ClinicianProfile).email === prior.email,
+  );
+}
+
 export function defaultPatients(): Patient[] {
   const now = Date.now();
   const day = (n: number) => new Date(now - n * 24 * 60 * 60 * 1000).toISOString();
@@ -370,9 +404,20 @@ function read(): PracticeData {
           .map(normalizePatient)
           .filter((p): p is Patient => p !== null)
       : [];
+    // If the stored profile exactly matches a previously-shipped default,
+    // the user never edited it — drop their stored profile so the current
+    // DEFAULT_PROFILE wins. Also reset the auth.email so the login form
+    // pre-fill matches what login() will compare against.
+    const profileWasStaleDefault = isPriorDefaultProfile(parsed.profile);
+    const profile = profileWasStaleDefault ? DEFAULT_PROFILE : parsed.profile;
+    const auth = profileWasStaleDefault
+      ? { ...defaultData().auth, ...parsed.auth, email: DEFAULT_PROFILE.email }
+      : parsed.auth;
     return {
       ...defaultData(),
       ...parsed,
+      ...(profile ? { profile } : {}),
+      ...(auth ? { auth } : {}),
       customPatients,
       noteExport: { ...defaultData().noteExport, ...parsed.noteExport },
     };

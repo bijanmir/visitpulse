@@ -52,6 +52,19 @@ export function LoginForm() {
     router.push(next);
   }
 
+  function handleResetDemo() {
+    const confirmed = window.confirm(
+      "Reset demo data? This clears the practice profile, added patients, " +
+        "saved check-ins, and any in-progress drafts in this browser. The " +
+        "default seed patients will reappear.",
+    );
+    if (!confirmed) return;
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith("visitpulse-")) localStorage.removeItem(key);
+    }
+    window.location.reload();
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-ambient px-6 py-12">
       <Logo className="mb-8" />
@@ -150,6 +163,13 @@ export function LoginForm() {
       >
         ← Back to home
       </Link>
+      <button
+        type="button"
+        onClick={handleResetDemo}
+        className="mt-2 text-xs text-slate-400 underline-offset-2 hover:text-rose-700 hover:underline"
+      >
+        Trouble signing in? Reset demo data
+      </button>
     </div>
   );
 }

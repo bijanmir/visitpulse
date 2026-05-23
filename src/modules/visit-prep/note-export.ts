@@ -85,9 +85,11 @@ export function formatPrepForNote(
 
   lines.push("", "MEDICATIONS", ...prep.medHighlights.map((h) => `• ${h}`));
 
-  if (prep.talkingPoints.length) {
-    lines.push("", "SUGGESTED FOCUS");
-    for (const p of prep.talkingPoints) lines.push(`• ${p}`);
+  if (prep.checkInHighlights.length) {
+    lines.push("", "FROM THIS CHECK-IN");
+    for (const h of prep.checkInHighlights) {
+      lines.push(`• ${h.trigger} — ${h.suggestion}`);
+    }
   }
 
   return lines.join("\n");
@@ -116,7 +118,7 @@ MEDICATIONS
 • Active: Venlafaxine XR 150mg
 • Venlafaxine XR adjusted (150mg)
 
-SUGGESTED FOCUS
-• Read the patient's written message before the visit
-• Explore barriers to medication adherence`;
+FROM THIS CHECK-IN
+• Patient message — read before the visit
+• Partial adherence — explore barriers`;
 }

@@ -447,15 +447,15 @@ export function setMfaEnabled(enabled: boolean): void {
 
 export function getPatients(): Patient[] {
   const data = read();
+  // `removedPatientIds` hides seed patients the user has deleted. It must NOT
+  // filter `customPatients` — when a seed is edited we push the new version
+  // into custom and rely on the map merge below to make it win.
   const defaults = defaultPatients().filter(
-    (p) => !data.removedPatientIds.includes(p.id),
-  );
-  const custom = data.customPatients.filter(
     (p) => !data.removedPatientIds.includes(p.id),
   );
   const byId = new Map<string, Patient>();
   for (const p of defaults) byId.set(p.id, p);
-  for (const p of custom) byId.set(p.id, p);
+  for (const p of data.customPatients) byId.set(p.id, p);
   return Array.from(byId.values());
 }
 
@@ -587,9 +587,12 @@ export function updatePatient(
       p.id === id ? updated : p,
     );
   } else {
-    data.removedPatientIds.push(id);
+    // First edit to a seed patient — push override into custom. The merge in
+    // getPatients() lets custom win over the seed with the same id.
     data.customPatients.push(updated);
   }
+  // If a previously-removed patient is being re-saved, clear the tombstone.
+  data.removedPatientIds = data.removedPatientIds.filter((rid) => rid !== id);
   write(data);
   return updated;
 }

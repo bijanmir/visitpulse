@@ -80,16 +80,25 @@ export function PrepCardView({ prep }: { prep: PrepCard }) {
           </ul>
         </Section>
 
-        {prep.talkingPoints.length > 0 && (
-          <Section icon={MessageCircle} title="Suggested focus">
+        {prep.checkInHighlights.length > 0 && (
+          <Section icon={MessageCircle} title="From this check-in">
             <ul className="space-y-1.5 text-sm text-slate-600">
-              {prep.talkingPoints.map((point) => (
-                <li key={point} className="flex gap-2">
+              {prep.checkInHighlights.map((h) => (
+                <li key={h.trigger} className="flex gap-2">
                   <span className="text-lavender-400">→</span>
-                  {point}
+                  <span>
+                    <span className="font-medium text-slate-800">
+                      {h.trigger}
+                    </span>
+                    <span className="text-slate-500"> — {h.suggestion}</span>
+                  </span>
                 </li>
               ))}
             </ul>
+            <p className="mt-3 text-[11px] text-slate-400">
+              Generated from latest check-in fields. Not a clinical
+              recommendation.
+            </p>
           </Section>
         )}
 

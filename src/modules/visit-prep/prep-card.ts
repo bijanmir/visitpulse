@@ -2,6 +2,13 @@ import { sortByRecordedAtDesc } from "@/lib/sort";
 import type { CheckIn, Patient, ScaleResponse } from "@/modules/clinical/types";
 import type { MedEvent } from "@/modules/clinical/types";
 
+export type CheckInHighlight = {
+  /** Short label describing what fired this highlight, e.g. "Missed doses". */
+  trigger: string;
+  /** Action-oriented follow-up, e.g. "assess adherence and relapse risk". */
+  suggestion: string;
+};
+
 export type PrepCard = {
   patientId: string;
   generatedAt: string;
@@ -12,7 +19,11 @@ export type PrepCard = {
   latestCheckIn: CheckIn | null;
   safetyAlert: boolean;
   medHighlights: string[];
-  talkingPoints: string[];
+  /**
+   * Items pulled from the latest check-in by deterministic rules. NOT a
+   * clinical recommendation — see SAFETY.md.
+   */
+  checkInHighlights: CheckInHighlight[];
 };
 
 function scaleDelta(scales: ScaleResponse[], type: ScaleResponse["type"]) {
@@ -52,28 +63,39 @@ export function buildPrepCard(
     ),
   ];
 
-  const talkingPoints: string[] = [];
+  const checkInHighlights: CheckInHighlight[] = [];
+  if (latestCheckIn?.patientMessage?.trim()) {
+    checkInHighlights.push({
+      trigger: "Patient message",
+      suggestion: "read before the visit",
+    });
+  }
   if (latestCheckIn?.safetyFlag) {
-    talkingPoints.push("Review safety screen responses from latest check-in");
+    checkInHighlights.push({
+      trigger: "Safety flag",
+      suggestion: "review safety screen responses",
+    });
   }
   if (latestCheckIn?.medicationAdherence === "partial") {
-    talkingPoints.push("Explore barriers to medication adherence");
+    checkInHighlights.push({
+      trigger: "Partial adherence",
+      suggestion: "explore barriers",
+    });
   }
   if (latestCheckIn?.medicationAdherence === "missed") {
-    talkingPoints.push("Assess missed doses and relapse risk");
+    checkInHighlights.push({
+      trigger: "Missed doses",
+      suggestion: "assess adherence and relapse risk",
+    });
   }
   if (latestCheckIn?.sideEffects.length) {
     const effects = latestCheckIn.sideEffects.filter((s) => s !== "None");
     if (effects.length) {
-      talkingPoints.push(
-        `Follow up on reported side effects: ${effects.join(", ")}`,
-      );
+      checkInHighlights.push({
+        trigger: `Side effects (${effects.join(", ")})`,
+        suggestion: "follow up on tolerability",
+      });
     }
-  }
-  if (latestCheckIn?.patientMessage?.trim()) {
-    talkingPoints.unshift(
-      "Read the patient's written message before the visit",
-    );
   }
 
   const phq9 = scaleDelta(patient.scales, "phq9");
@@ -98,6 +120,6 @@ export function buildPrepCard(
     latestCheckIn: latestCheckIn ?? null,
     safetyAlert: Boolean(latestCheckIn?.safetyFlag),
     medHighlights,
-    talkingPoints,
+    checkInHighlights,
   };
 }

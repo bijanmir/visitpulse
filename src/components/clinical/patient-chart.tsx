@@ -1,5 +1,6 @@
 "use client";
 
+import { AiSummaryCard } from "@/components/clinical/ai-summary-card";
 import { PrepCardView } from "@/components/clinical/prep-card-view";
 import { CheckInsPanel } from "@/components/clinical/check-ins-panel";
 import { useClientMounted } from "@/hooks/use-client-mounted";
@@ -35,7 +36,15 @@ export function PatientChart({
 
   return (
     <>
-      <PrepCardView prep={prep} />
+      <AiSummaryCard
+        patient={patient}
+        medEvents={medEvents}
+        scales={scales}
+        checkIns={checkIns}
+      />
+      <div className="mt-6">
+        <PrepCardView prep={prep} />
+      </div>
       <div className="mt-8">
         <CheckInsPanel
           patientId={patient.id}

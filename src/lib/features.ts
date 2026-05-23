@@ -6,4 +6,7 @@ export const features = {
   medTimeline: process.env.FEATURE_MED_TIMELINE !== "false",
   auditPersist: process.env.FEATURE_AUDIT_PERSIST === "true",
   realNotifications: process.env.FEATURE_REAL_NOTIFICATIONS === "true",
+  aiSummary:
+    process.env.FEATURE_AI_SUMMARY !== "false" &&
+    Boolean(process.env.ANTHROPIC_API_KEY),
 } as const;

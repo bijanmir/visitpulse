@@ -80,12 +80,12 @@ export function PatientDetailClient({ id }: { id: string }) {
         Back to schedule
       </Link>
 
-      <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 flex-1 items-center gap-4">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+        <div className="flex items-center gap-4">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pulse-200 to-lavender-200 text-lg font-semibold text-pulse-800">
             {initials(patient.displayName)}
           </span>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <h1 className="font-display text-3xl font-semibold leading-tight text-slate-800">
               {patient.displayName}
             </h1>

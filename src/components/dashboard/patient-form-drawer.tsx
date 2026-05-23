@@ -1,5 +1,6 @@
 "use client";
 
+import { DiagnosisCombobox } from "@/components/clinical/diagnosis-combobox";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { Input, Label } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import { useState } from "react";
 const emptyForm = (): NewPatientInput => ({
   displayName: "",
   age: 30,
-  diagnosis: "",
+  diagnoses: [],
   riskLevel: "low",
   nextVisitAt: localDatetimeValue(new Date(Date.now() + 24 * 60 * 60 * 1000)),
 });
@@ -25,7 +26,7 @@ function formFromPatient(patient: Patient): NewPatientInput {
   return {
     displayName: patient.displayName,
     age: patient.age,
-    diagnosis: patient.diagnosis,
+    diagnoses: patient.diagnoses,
     riskLevel: patient.riskLevel,
     nextVisitAt: localDatetimeValue(new Date(patient.nextVisitAt)),
   };
@@ -75,6 +76,7 @@ function Body({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (form.diagnoses.length === 0) return;
     const payload: NewPatientInput = {
       ...form,
       nextVisitAt: new Date(form.nextVisitAt).toISOString(),
@@ -133,17 +135,16 @@ function Body({
           </select>
         </div>
       </div>
-      <div>
-        <Label>Diagnosis</Label>
-        <Input
-          value={form.diagnosis}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, diagnosis: e.target.value }))
-          }
-          placeholder="Major Depressive Disorder"
-          required
-        />
-      </div>
+      <DiagnosisCombobox
+        value={form.diagnoses}
+        onChange={(diagnoses) => setForm((f) => ({ ...f, diagnoses }))}
+        helperText="Search by description or ICD-10 code. First entry is treated as primary. Enter to add free-text if not in the list."
+      />
+      {form.diagnoses.length === 0 && (
+        <p className="text-xs text-rose-700">
+          At least one diagnosis is required.
+        </p>
+      )}
       <div>
         <Label>Next visit</Label>
         <Input

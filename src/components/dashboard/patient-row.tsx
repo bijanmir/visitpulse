@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { summarizeDiagnoses } from "@/lib/diagnosis";
 import { sortByRecordedAtDesc } from "@/lib/sort";
 import { cn, formatTime, initials } from "@/lib/utils";
 import type { Patient } from "@/modules/clinical/types";
@@ -67,7 +68,9 @@ export function PatientRow({
             </Badge>
           )}
         </div>
-        <p className="truncate text-sm text-slate-500">{patient.diagnosis}</p>
+        <p className="truncate text-sm text-slate-500">
+          {summarizeDiagnoses(patient)}
+        </p>
         <p className="mt-1 text-xs text-slate-500 sm:hidden">
           {formatTime(patient.nextVisitAt)} · {statusText}
         </p>

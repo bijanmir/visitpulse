@@ -30,10 +30,17 @@ export function formatPrepForNote(
 
   const lines: string[] = [header];
 
+  const dxLine = patient.diagnoses
+    .map((d) => (d.code ? `${d.description} (${d.code})` : d.description))
+    .join("; ");
+
   if (includeIdentifiers) {
     lines.push(
-      `Patient: ${patient.displayName} | ${patient.diagnosis} | Age ${patient.age}`,
+      `Patient: ${patient.displayName} | Age ${patient.age}`,
+      `Dx: ${dxLine || "—"}`,
     );
+  } else if (dxLine) {
+    lines.push(`Dx: ${dxLine}`);
   }
 
   lines.push(

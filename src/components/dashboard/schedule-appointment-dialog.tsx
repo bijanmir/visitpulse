@@ -5,6 +5,7 @@ import { Drawer } from "@/components/ui/drawer";
 import { Input, Label } from "@/components/ui/input";
 import { usePatients } from "@/hooks/use-practice-store";
 import { defaultVisitTimeForDay, toDayKey } from "@/lib/date-utils";
+import { summarizeDiagnoses } from "@/lib/diagnosis";
 import { updatePatient } from "@/lib/practice-store";
 import { CalendarPlus } from "lucide-react";
 import { useState } from "react";
@@ -77,7 +78,7 @@ function Body({
             </option>
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.displayName} — {p.diagnosis}
+                {p.displayName} — {summarizeDiagnoses(p)}
               </option>
             ))}
           </select>

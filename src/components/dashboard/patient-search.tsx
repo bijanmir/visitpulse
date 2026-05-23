@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { usePatients } from "@/hooks/use-practice-store";
+import { diagnosesMatch, summarizeDiagnoses } from "@/lib/diagnosis";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -20,9 +21,7 @@ export function PatientSearch({ className }: { className?: string }) {
     if (!q) return [];
     return patients
       .filter(
-        (p) =>
-          p.displayName.toLowerCase().includes(q) ||
-          p.diagnosis.toLowerCase().includes(q),
+        (p) => p.displayName.toLowerCase().includes(q) || diagnosesMatch(p, q),
       )
       .slice(0, 8);
   }, [patients, query]);
@@ -109,7 +108,7 @@ export function PatientSearch({ className }: { className?: string }) {
                       {p.displayName}
                     </span>
                     <span className="mt-0.5 block text-xs text-slate-500">
-                      {p.diagnosis}
+                      {summarizeDiagnoses(p)}
                     </span>
                   </Link>
                 </li>

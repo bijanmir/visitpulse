@@ -55,16 +55,32 @@ export function PatientDetailClient({ id }: { id: string }) {
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-pulse-200 to-lavender-200 text-lg font-semibold text-pulse-800">
             {initials(patient.displayName)}
           </span>
-          <div>
+          <div className="min-w-0">
             <h1 className="font-display text-3xl font-semibold text-slate-800">
               {patient.displayName}
             </h1>
-            <p className="text-slate-600">
-              {patient.diagnosis} · {patient.age}y
-            </p>
-            <p className="mt-1 text-sm text-slate-500">
-              Next visit {formatTime(patient.nextVisitAt)}
-            </p>
+            <p className="text-sm text-slate-600">{patient.age}y · Next visit {formatTime(patient.nextVisitAt)}</p>
+            {patient.diagnoses.length > 0 && (
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {patient.diagnoses.map((d, i) => (
+                  <li
+                    key={`${d.code}-${i}`}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs ${
+                      i === 0
+                        ? "bg-pulse-100 text-pulse-800 ring-1 ring-pulse-200"
+                        : "bg-mist-100 text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    <span className="font-medium">{d.description}</span>
+                    {d.code && (
+                      <span className="rounded bg-white/70 px-1 py-px font-mono text-[10px] text-slate-600">
+                        {d.code}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap print:hidden">

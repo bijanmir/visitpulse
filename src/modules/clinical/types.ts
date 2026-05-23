@@ -21,11 +21,18 @@ export type CheckIn = {
   patientMessage?: string;
 };
 
+export type Diagnosis = {
+  /** ICD-10 code; empty string for free-text diagnoses without a billable code. */
+  code: string;
+  description: string;
+};
+
 export type Patient = {
   id: string;
   displayName: string;
   age: number;
-  diagnosis: string;
+  /** First entry is the primary diagnosis. */
+  diagnoses: Diagnosis[];
   nextVisitAt: string;
   riskLevel: RiskLevel;
   checkInToken: string;

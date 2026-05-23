@@ -1,7 +1,13 @@
 import { toDayKey } from "@/lib/date-utils";
+import { normalizeDiagnoses } from "@/lib/diagnosis";
 import { newCheckInToken, newMedEventId, newPatientId } from "@/lib/ids";
 import { initials } from "@/lib/utils";
-import type { MedEvent, Patient, RiskLevel } from "@/modules/clinical/types";
+import type {
+  Diagnosis,
+  MedEvent,
+  Patient,
+  RiskLevel,
+} from "@/modules/clinical/types";
 
 export type ClinicianProfile = {
   id: string;
@@ -51,7 +57,9 @@ export function defaultPatients(): Patient[] {
       id: "pt-1",
       displayName: "Jordan M.",
       age: 34,
-      diagnosis: "Major Depressive Disorder",
+      diagnoses: [
+        { code: "F33.1", description: "Major depressive disorder, recurrent, moderate" },
+      ],
       nextVisitAt: new Date(now + 2 * 60 * 60 * 1000).toISOString(),
       riskLevel: "moderate",
       checkInToken: "demo-jordan",
@@ -97,7 +105,10 @@ export function defaultPatients(): Patient[] {
       id: "pt-2",
       displayName: "Alex R.",
       age: 41,
-      diagnosis: "Bipolar II Disorder",
+      diagnoses: [
+        { code: "F31.81", description: "Bipolar II disorder" },
+        { code: "F41.1", description: "Generalized anxiety disorder" },
+      ],
       nextVisitAt: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
       riskLevel: "low",
       checkInToken: "demo-alex",
@@ -131,7 +142,10 @@ export function defaultPatients(): Patient[] {
       id: "pt-3",
       displayName: "Sam T.",
       age: 28,
-      diagnosis: "Generalized Anxiety Disorder",
+      diagnoses: [
+        { code: "F41.1", description: "Generalized anxiety disorder" },
+        { code: "F43.10", description: "Post-traumatic stress disorder, unspecified" },
+      ],
       nextVisitAt: new Date(now + 26 * 60 * 60 * 1000).toISOString(),
       riskLevel: "elevated",
       checkInToken: "demo-sam",
@@ -159,7 +173,9 @@ export function defaultPatients(): Patient[] {
       id: "pt-4",
       displayName: "Morgan K.",
       age: 52,
-      diagnosis: "MDD, recurrent",
+      diagnoses: [
+        { code: "F33.41", description: "Major depressive disorder, recurrent, in partial remission" },
+      ],
       nextVisitAt: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
       riskLevel: "low",
       checkInToken: "demo-morgan",
@@ -279,13 +295,44 @@ function defaultData(): PracticeData {
   };
 }
 
+function normalizePatient(p: unknown): Patient | null {
+  if (!p || typeof p !== "object") return null;
+  const r = p as Record<string, unknown> & { diagnosis?: unknown };
+  if (typeof r.id !== "string" || typeof r.displayName !== "string") return null;
+  // `diagnoses` is the current shape; `diagnosis` (string) is legacy.
+  const diagnoses = normalizeDiagnoses(r.diagnoses ?? r.diagnosis);
+  return {
+    id: r.id,
+    displayName: r.displayName,
+    age: typeof r.age === "number" ? r.age : 0,
+    diagnoses,
+    nextVisitAt: typeof r.nextVisitAt === "string" ? r.nextVisitAt : new Date().toISOString(),
+    riskLevel: (r.riskLevel as Patient["riskLevel"]) ?? "low",
+    checkInToken: typeof r.checkInToken === "string" ? r.checkInToken : "",
+    scales: Array.isArray(r.scales) ? (r.scales as Patient["scales"]) : [],
+    checkIns: Array.isArray(r.checkIns) ? (r.checkIns as Patient["checkIns"]) : [],
+  };
+}
+
 function read(): PracticeData {
   if (typeof window === "undefined") return defaultData();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultData();
-    const parsed = JSON.parse(raw) as Partial<PracticeData>;
-    return { ...defaultData(), ...parsed, noteExport: { ...defaultData().noteExport, ...parsed.noteExport } };
+    const parsed = JSON.parse(raw) as Partial<PracticeData> & {
+      customPatients?: unknown[];
+    };
+    const customPatients = Array.isArray(parsed.customPatients)
+      ? parsed.customPatients
+          .map(normalizePatient)
+          .filter((p): p is Patient => p !== null)
+      : [];
+    return {
+      ...defaultData(),
+      ...parsed,
+      customPatients,
+      noteExport: { ...defaultData().noteExport, ...parsed.noteExport },
+    };
   } catch {
     return defaultData();
   }
@@ -497,7 +544,7 @@ export function getPatientsForDay(
 export type NewPatientInput = {
   displayName: string;
   age: number;
-  diagnosis: string;
+  diagnoses: Diagnosis[];
   riskLevel: RiskLevel;
   nextVisitAt: string;
 };
@@ -512,7 +559,7 @@ export function addPatient(input: NewPatientInput): Patient {
     id: newPatientId(),
     displayName: input.displayName,
     age: input.age,
-    diagnosis: input.diagnosis,
+    diagnoses: input.diagnoses,
     nextVisitAt: input.nextVisitAt,
     riskLevel: input.riskLevel,
     checkInToken: newCheckInToken(slug),

@@ -154,7 +154,7 @@ export function PatientDetailClient({ id }: { id: string }) {
       </div>
 
       <div className="mt-8">
-        <MedTimelineView events={medEvents} />
+        <MedTimelineView events={medEvents} patientId={patient.id} />
       </div>
 
       <ScheduleAppointmentDialog

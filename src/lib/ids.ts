@@ -35,6 +35,10 @@ export function newCheckInId(): string {
   return `ci-${newUuid()}`;
 }
 
+export function newMedEventId(): string {
+  return `med-${newUuid()}`;
+}
+
 /** 128-bit hex token, URL-safe, prefixed for readability. */
 export function newCheckInToken(slug: string): string {
   return `checkin-${slug}-${randomBytesHex(16)}`;

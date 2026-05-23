@@ -1,5 +1,5 @@
 import { toDayKey } from "@/lib/date-utils";
-import { newCheckInToken, newPatientId } from "@/lib/ids";
+import { newCheckInToken, newMedEventId, newPatientId } from "@/lib/ids";
 import { initials } from "@/lib/utils";
 import type { MedEvent, Patient, RiskLevel } from "@/modules/clinical/types";
 
@@ -427,6 +427,59 @@ export function getMedEvents(patientId: string): MedEvent[] {
     DEFAULT_MED_EVENTS[patientId] ??
     []
   );
+}
+
+export type MedEventInput = Omit<MedEvent, "id" | "patientId">;
+
+/**
+ * Returns the editable working copy of a patient's med events. The first
+ * edit to a seed patient's timeline copies the seed list into
+ * `customMedEvents` so subsequent reads via `getMedEvents` see the override.
+ */
+function ensureEditableMedEvents(
+  data: PracticeData,
+  patientId: string,
+): MedEvent[] {
+  if (!data.customMedEvents[patientId]) {
+    data.customMedEvents[patientId] = (DEFAULT_MED_EVENTS[patientId] ?? []).map(
+      (e) => ({ ...e }),
+    );
+  }
+  return data.customMedEvents[patientId];
+}
+
+export function addMedEvent(
+  patientId: string,
+  input: MedEventInput,
+): MedEvent {
+  const data = read();
+  const list = ensureEditableMedEvents(data, patientId);
+  const event: MedEvent = { ...input, id: newMedEventId(), patientId };
+  list.push(event);
+  write(data);
+  return event;
+}
+
+export function updateMedEvent(
+  patientId: string,
+  eventId: string,
+  patch: Partial<MedEventInput>,
+): MedEvent | undefined {
+  const data = read();
+  const list = ensureEditableMedEvents(data, patientId);
+  const idx = list.findIndex((e) => e.id === eventId);
+  if (idx === -1) return undefined;
+  const updated: MedEvent = { ...list[idx], ...patch };
+  list[idx] = updated;
+  write(data);
+  return updated;
+}
+
+export function removeMedEvent(patientId: string, eventId: string): void {
+  const data = read();
+  const list = ensureEditableMedEvents(data, patientId);
+  data.customMedEvents[patientId] = list.filter((e) => e.id !== eventId);
+  write(data);
 }
 
 export function getPatientsForDay(

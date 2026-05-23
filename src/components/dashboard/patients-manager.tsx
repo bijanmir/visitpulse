@@ -1,31 +1,15 @@
 "use client";
 
+import { PatientFormDrawer } from "@/components/dashboard/patient-form-drawer";
 import { PatientRow } from "@/components/dashboard/patient-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input, Label } from "@/components/ui/input";
 import { usePatients } from "@/hooks/use-practice-store";
 import { buildSafetyFlagMap } from "@/lib/patient-safety-flags";
-import {
-  addPatient,
-  removePatient,
-  updatePatient,
-  type NewPatientInput,
-} from "@/lib/practice-store";
-import type { Patient, RiskLevel } from "@/modules/clinical/types";
-import { Pencil, Plus, Trash2, Users, X } from "lucide-react";
-import { localDatetimeValue } from "@/lib/date-utils";
+import { removePatient } from "@/lib/practice-store";
+import type { Patient } from "@/modules/clinical/types";
+import { Pencil, Plus, Trash2, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-
-const emptyForm: NewPatientInput = {
-  displayName: "",
-  age: 30,
-  diagnosis: "",
-  riskLevel: "low",
-  nextVisitAt: localDatetimeValue(
-    new Date(Date.now() + 24 * 60 * 60 * 1000),
-  ),
-};
 
 export function PatientsManager() {
   const patients = usePatients();
@@ -33,44 +17,18 @@ export function PatientsManager() {
     () => buildSafetyFlagMap(patients),
     [patients],
   );
-  const [showForm, setShowForm] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Patient | null>(null);
-  const [form, setForm] = useState(emptyForm);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
   function openAdd() {
     setEditing(null);
-    setForm(emptyForm);
-    setShowForm(true);
+    setDrawerOpen(true);
   }
 
   function openEdit(patient: Patient) {
     setEditing(patient);
-    setForm({
-      displayName: patient.displayName,
-      age: patient.age,
-      diagnosis: patient.diagnosis,
-      riskLevel: patient.riskLevel,
-      nextVisitAt: localDatetimeValue(new Date(patient.nextVisitAt)),
-    });
-    setShowForm(true);
-  }
-
-  function closeForm() {
-    setShowForm(false);
-    setEditing(null);
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const visitIso = new Date(form.nextVisitAt).toISOString();
-    const payload = { ...form, nextVisitAt: visitIso };
-    if (editing) {
-      updatePatient(editing.id, payload);
-    } else {
-      addPatient(payload);
-    }
-    closeForm();
+    setDrawerOpen(true);
   }
 
   function handleRemove(id: string) {
@@ -82,7 +40,7 @@ export function PatientsManager() {
     <div className="mx-auto max-w-3xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-pulse-600" />
+          <Users className="h-5 w-5 text-pulse-600" aria-hidden />
           <div>
             <h1 className="font-display text-3xl font-semibold text-slate-800">
               Patients
@@ -93,102 +51,12 @@ export function PatientsManager() {
           </div>
         </div>
         <Button onClick={openAdd}>
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden />
           Add patient
         </Button>
       </div>
 
-      {showForm && (
-        <Card className="mt-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold text-slate-800">
-              {editing ? "Edit patient" : "New patient"}
-            </h2>
-            <button
-              type="button"
-              onClick={closeForm}
-              className="rounded-lg p-1 text-slate-400 hover:bg-mist-100"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <form onSubmit={handleSubmit} className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label>Display name</Label>
-              <Input
-                value={form.displayName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, displayName: e.target.value }))
-                }
-                placeholder="Jordan M."
-                required
-              />
-            </div>
-            <div>
-              <Label>Age</Label>
-              <Input
-                type="number"
-                min={1}
-                max={120}
-                value={form.age}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, age: Number(e.target.value) }))
-                }
-                required
-              />
-            </div>
-            <div>
-              <Label>Risk level</Label>
-              <select
-                value={form.riskLevel}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    riskLevel: e.target.value as RiskLevel,
-                  }))
-                }
-                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm"
-              >
-                <option value="low">Low</option>
-                <option value="moderate">Moderate</option>
-                <option value="elevated">Elevated</option>
-              </select>
-            </div>
-            <div className="sm:col-span-2">
-              <Label>Diagnosis</Label>
-              <Input
-                value={form.diagnosis}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, diagnosis: e.target.value }))
-                }
-                placeholder="Major Depressive Disorder"
-                required
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <Label>Next visit</Label>
-              <Input
-                type="datetime-local"
-                value={form.nextVisitAt}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, nextVisitAt: e.target.value }))
-                }
-                required
-              />
-            </div>
-            <div className="flex gap-2 sm:col-span-2">
-              <Button type="submit">
-                {editing ? "Save changes" : "Add patient"}
-              </Button>
-              <Button type="button" variant="secondary" onClick={closeForm}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      {patients.length === 0 && !showForm && (
+      {patients.length === 0 && (
         <Card className="mt-8 text-center">
           <Users className="mx-auto h-10 w-10 text-pulse-300" aria-hidden />
           <p className="mt-3 font-medium text-slate-800">No patients yet</p>
@@ -210,22 +78,22 @@ export function PatientsManager() {
               hasCheckIn={patient.checkIns.length > 0}
               safetyFlagLatest={safetyFlags[patient.id] ?? false}
             />
-            <div className="absolute right-14 top-1/2 flex -translate-y-1/2 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="absolute right-14 top-1/2 flex -translate-y-1/2 gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
               <button
                 type="button"
                 onClick={() => openEdit(patient)}
-                className="rounded-lg bg-white p-2 shadow-sm ring-1 ring-slate-200 hover:text-pulse-700"
-                title="Edit"
+                className="rounded-lg bg-white p-2 shadow-sm ring-1 ring-slate-200 hover:text-pulse-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse-300"
+                aria-label={`Edit ${patient.displayName}`}
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil className="h-4 w-4" aria-hidden />
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmRemove(patient.id)}
-                className="rounded-lg bg-white p-2 shadow-sm ring-1 ring-slate-200 hover:text-rose-700"
-                title="Remove"
+                className="rounded-lg bg-white p-2 shadow-sm ring-1 ring-slate-200 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
+                aria-label={`Remove ${patient.displayName}`}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" aria-hidden />
               </button>
             </div>
             {confirmRemove === patient.id && (
@@ -252,6 +120,12 @@ export function PatientsManager() {
           </div>
         ))}
       </div>
+
+      <PatientFormDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        editing={editing}
+      />
     </div>
   );
 }

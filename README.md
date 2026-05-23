@@ -5,7 +5,7 @@ Visit prep and medication timeline for psychiatrists.
 ## Demo login
 
 1. `npm run dev` → [http://localhost:3000/login](http://localhost:3000/login)
-2. Email: `elena@harborpsychiatry.demo` (or whatever you set in Settings)
+2. Email: `sebastian@sdpsychiatry.demo` (or whatever you set in Settings)
 3. Password: `demo1234`
 4. MFA code (when enabled): `123456`
 

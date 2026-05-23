@@ -43,10 +43,10 @@ export const DEMO_PASSWORD = "demo1234";
 
 export const DEFAULT_PROFILE: ClinicianProfile = {
   id: "clin-1",
-  name: "Dr. Elena Vasquez",
-  practice: "Harbor Psychiatry",
+  name: "Dr. Sebastian Mirvan",
+  practice: "Sebi Psychiatry",
   specialty: "Adult Psychiatry",
-  email: "elena@harborpsychiatry.demo",
+  email: "sebastian@sdpsychiatry.demo",
 };
 
 export function defaultPatients(): Patient[] {
